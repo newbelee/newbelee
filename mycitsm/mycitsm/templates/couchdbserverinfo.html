@@ -1,0 +1,61 @@
+{% extends "base_site.html" %}
+{% load i18n static %}
+{% load url from future %}
+
+{% block extrastyle %}{{ block.super }}
+<link rel="stylesheet" type="text/css" href="{% static "css/table1.css" %}" />
+<link rel="stylesheet" type="text/css" href="{% static "css/table1.css" %}" />
+<link href="{% static "css/index.css" %}" rel="stylesheet" type="text/css" />
+<script src="{% static "js/jquery.js?v=1.83.min" %}" type="text/javascript"></script>
+<script src="{% static "js/sucaijiayuan.js" %}"></script>
+<script language="javascript" src="/static/installinfo/js/jquery-1.11.1.min.js"></script>
+<link rel="stylesheet" type="text/css" href="/static/installinfo/css/jquery.dataTables.css">
+<script language="javascript" src="/static/installinfo/js/jquery.dataTables.min.js"></script>
+<script type="text/javascript">
+    $(document).ready(function(){
+        $('#tbData').dataTable({
+            "info":     false,
+            "order": [[ 0, 'desc' ]]
+        });    
+    });
+
+</script>
+
+{% endblock %}
+{% block content_title %}{% if title %}<h1>{{ title }}</h1>{% endif %}{% endblock %}
+{% block content %}
+
+
+<div class="style">
+<table width="100% border="1"" id = "tbData" class="tb_primary j_table" >
+<thead>
+<tr>
+    <th>环境</th>
+    <th>群集名 | 应用名</th>
+    <th>主机名</th>
+    <th>服务器状态</th>    
+</tr>
+</thead>
+
+{% for row in rows %}
+<tr>
+    <td>{{row.env}}</td>
+    <td>{{row.cluster_name}}</td>
+    <td><a href="http://{{row.ip_business}}:5984/_utils/" target="_black">{{row.machine_name}}</a></td>
+    <td>
+        {% if row.ServerStatus != "-" %}
+        <a href="#" 
+        {% if row.ServerStatus == "Critical" %} style="color:red;" {% endif %} 
+        {% if row.ServerStatus == "Fair" %} style="color:darkorange;" {% endif %} 
+        {% if row.ServerStatus == "Good" %} style="color:green;" {% endif %}>
+        {% endif %}{{row.ServerStatus}}{% if row.ServerStatus != "" %}
+        </a>
+        {% endif %}
+    </td>
+</tr>
+{% endfor %}
+
+</table>
+</div>
+
+{% endblock %}

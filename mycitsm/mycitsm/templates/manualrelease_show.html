@@ -1,0 +1,127 @@
+{% extends "base_site.html" %}
+{% load i18n static %}
+{% load url from future %}
+
+{% block extrastyle %}{{ block.super }}<link rel="stylesheet" type="text/css" href="{% static "css/forms.css" %}" />{% endblock %}
+
+{% block extrahead %}
+    <script type="text/javascript" src="{% static "js/jquery.min.js" %}"></script>
+    <script>
+    $(document).ready(function(){
+        $("pre").hide();
+        $(":checkbox").attr("disabled","disabled");
+        $("#history").hide();
+    });
+    var submit=0;
+    function checkrepeat()
+    {
+        if (++submit>1)
+        {
+            alert('请勿重复提交!');
+            return false;
+        }
+        return true;
+    }
+    function showscript(nowthis){
+        $(nowthis).parent().find("pre").toggle();
+    }
+    function setenv(nowthis){
+        $(":checkbox").attr("disabled","disabled");
+        $(":checkbox").removeAttr("checked","checked");
+        $(nowthis).parent().find(":checkbox").removeAttr("disabled");
+        $(nowthis).parent().find(":checkbox").attr("checked","checked");
+        $("#dropexist").removeAttr("disabled");
+    }
+    function checkenv(nowthis){
+        if ($(nowthis).parent().find(":checked").size()==0) {
+            alert("至少需要包含一个子环境！");
+        }
+    }
+    function showhistory(){
+        $("#history").toggle();
+    }
+
+    
+    </script>
+<script>
+$(function () {
+
+  $( "#dialog" ).dialog({
+  autoOpen: false,
+  maxHeight: 800,
+  maxWidth: 1000,
+  minHeight:300,
+  minWidth:1000,
+  modal: true,
+  show: {
+  //effect: "blind",
+  //duration: 500
+  },
+  hide: {
+  }
+  });
+
+  $( "#opener" ).click(function() { 
+  
+  $( "#dialog" ).dialog( "open" );
+  });
+
+    
+});
+
+</script>
+{% endblock %}
+
+
+{% block content %}
+<form enctype="multipart/form-data" action="" method="post" id="release_form">
+
+<fieldset class="module aligned">
+    <h2>发布明细</h2>
+    <div class="form-row">
+        <label class="required">目标数据库:</label>
+        <input type="text" name="dbname" value="{{dbname}}" disabled="disabled" size="40"/>
+        <ol>
+        {% for row in result %}
+            <li>
+                <label>修改表</label>
+                <input type="text" size="40" name="objname" value="{{row.tablename}}" disabled="disabled" />
+                <input type="button" onclick="showscript(this)" value="查看脚本" />
+                <pre style="color:gray;">{{row.dbsqlscript}}</pre>
+            </li>
+        {% endfor %}
+        </ol>
+    </div>
+</fieldset>
+
+<fieldset class="module aligned">
+    <h2>发布信息</h2>
+    <div class="form-row">
+        <label class="required" style="width:150px;">当前状态:</label>
+        <input type="text" value="上传UAT成功" disabled="disabled" /> 
+        <input type="button" onclick="showhistory()" value="查看表信息" />
+        
+    </div>
+     <div id="history" class="form-row">
+        <label>表信息:</label> 
+        <ol style="margin-top:2em;">
+        {% for row in table_info %}
+            <li>
+                <p style="color:red">行数:{{row.TABLE_ROWS}}  表大小:{{row.table_size}}M</p>
+            </li>
+        {% endfor %}
+        </ol>
+    </div>
+
+
+</fieldset>
+
+{% if has_perm %}
+<div class="submit-row">
+    <input type="submit" value="发布" class="default" name="_save" onclick="checkrepeat()"/>
+    <p class="deletelink-box"><a href="close/" class="deletelink">结束申请单</a>
+</div>
+{% endif %}
+
+</form>
+{% endblock %}

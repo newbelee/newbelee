@@ -1,0 +1,2157 @@
+{% extends "base_site.html" %}
+{% load i18n static %}
+{% load url from future %}
+
+{% block extrastyle %}
+{{ block.super }}
+   
+    <link rel="stylesheet" type="text/css" href="{% static "css/jquery-ui.css" %}" />
+    <link rel="stylesheet" type="text/css" href="{% static "css/jquery-ui-timepicker-addon.css" %}" />
+
+
+    <link rel="stylesheet" type="text/css" href="{% static "css/jquery.multiselect.css" %}" />
+    <link rel="stylesheet" type="text/css" href="{% static "css/jquery.multiselect.filter.css" %}" />
+
+    
+    <link rel="stylesheet" type="text/css" href="{% static "css/dataTables.jqueryui.css" %}" />
+ 
+    <script type="text/javascript" src="{% static "js/jquery-1.10.2.js" %}"></script>
+    <script type="text/javascript" src="{% static "js/jquery-ui.js" %}"></script>
+
+    <script type="text/javascript" src="{% static "js/jquery-ui-sliderAccess.js" %}"></script>
+    <script type="text/javascript" src="{% static "js/jquery-ui-timepicker-addon.js" %}"></script>
+
+    <script type="text/javascript" src="{% static "js/highstock.js" %}"></script>
+    <script type="text/javascript" src="{% static "js/exporting.js" %}"></script>
+
+
+    <script type="text/javascript" src="{% static "js/jquery.multiselect.js" %}"></script>  
+    <script type="text/javascript" src="{% static "js/jquery.multiselect.filter.js" %}"></script>
+
+    <script type="text/javascript" src="{% static "js/jquery.dataTables.js" %}"></script>
+    <script type="text/javascript" src="{% static "js/dataTables.jqueryui.js" %}"></script>
+
+    <script type="text/javascript" src="{% static "js/jquery.chained.remote.min.js" %}"></script>
+    
+    
+
+    <link rel="stylesheet" type="text/css" href="{% static "css/slowlogmonitor.css" %}" />
+    
+    <style type="text/css">    
+        .trOnDraw, .tdOnDraw { 
+            background-color: #dadada !important;
+        }  
+
+        #mainTableAutoDataClearConfFormContainer, #attachTableAutoDataClearConfFormContainer {
+            width:60%;
+            margin:0 auto;
+        }
+        
+        div.slider{
+           width:96%;
+           margin-top:.5em;
+        }
+        
+        #autoDataClearConfFormContainer table{ 
+            width:100%;
+            border:0;
+        }
+
+        #autoDataClearConfFormContainer table tr td:first-child { 
+            width: 30%;
+        }
+        #autoDataClearConfFormContainer table tr td:last-child { 
+            padding-left: 20px;
+        }
+
+        #autoDataClearConfFormContainer table td { 
+            border:0;
+            vertical-align: center;
+        }
+
+        #autoDataClearConfFormContainer label{ 
+            display:block; 
+            padding-top:.5em;
+        }
+        
+        #autoDataClearConfFormContainer input{ 
+            display:block;
+            width:95%; 
+            padding-left: 5px; 
+        }
+
+        #autoDataClearConfFormContainer select { 
+            width:98%; 
+        }
+
+        #autoDataClearConfFormContainer fieldset { 
+            padding:0; 
+            border:0; 
+        }
+
+        #autoDataClearConfFormContainer h1 { 
+            font-size: 1.2em; 
+            margin: .6em 0; 
+        }
+
+        .validateTips { 
+            width:95%;
+            border: 1px solid transparent; 
+            padding-left: 5px;
+        }
+
+        .hostDBValidateTips{
+            display: inline;
+            border: 0;
+        }
+
+    </style>
+
+    <script type="text/javascript">
+        var dnsRegex = /[a-zA-Z0-9][-a-zA-Z0-9]{0,62}(\.[a-zA-Z0-9][-a-zA-Z0-9]{0,62})+\.?/i;
+        var columnRegex = /^[_a-zA-Z][a-zA-Z0-9_]*$/; 
+        var timeRegex = /^(([0-1]?[0-9])|([2][0-3])):([0-5]?[0-9])(:([0-5]?[0-9]))?$/;
+        var datetimeRegex = /^[0-9]{4}-(((0[13578]|(10|12))-(0[1-9]|[1-2][0-9]|3[0-1]))|(02-(0[1-9]|[1-2][0-9]))|((0[469]|11)-(0[1-9]|[1-2][0-9]|30))) (([0-1]?[0-9])|([2][0-3])):([0-5]?[0-9])(:([0-5]?[0-9]))?$/;
+
+        Highcharts.setOptions({
+            global: {
+                timezoneOffset: -480
+            }
+        });
+
+        function drawImg(container, titleText, subtitleText, yAxisTitleText, series){
+            container.highcharts('StockChart', {
+                chart:{
+                    width:860,
+                    height:480           
+                }, 
+
+                rangeSelector : {
+                    selected : 3,
+                    inputEnabled:false,
+                    //inputEditDateFormat: '%Y-%m-%d',
+                    buttons: [{
+                                type: 'week',
+                                count: 1,
+                                text: '7d'
+                            },{
+                                type: 'week',
+                                count: 2,
+                                text: '14d'
+                            },{
+                                type: 'month',
+                                count: 1,
+                                text: '1m'
+                            },{
+                                type: 'month',
+                                count: 3,
+                                text: '3m'
+                            },{
+                                type: 'all',
+                                text: 'ALL'
+                            }]
+                },
+
+                title: {
+                    text: titleText
+                },
+
+                subtitle: {
+                    text: subtitleText,
+                },
+
+                credits: {
+                    enabled: false
+                },
+
+                dataGrouping: {
+                    enabled: false
+                },
+
+                yAxis: [{
+                    labels: {
+                        align: 'right',
+                        x: -3
+                    },
+                    title: {
+                        text: yAxisTitleText
+                    },
+                    offset:0,
+                    lineWidth: 1
+                },],
+                
+                series: [series]
+            });    
+        } 
+              
+        function updateTips(tips, tipContainer){
+            tipContainer.text(tips).addClass("ui-state-error");
+            setTimeout(function(){
+                tipContainer.empty();
+                tipContainer.removeClass("ui-state-error");
+            },1000 );
+        }
+
+        function checkVal(element, name, tipContainer){
+            if(element.val() == "" || element.val() == null){
+                element.addClass("ui-state-error");
+                updateTips("需提供" + name, tipContainer)
+                return false;
+            } else {
+                return true;
+            }
+        }
+
+        function checkRegexp(element, name, regexp, formatTips, tipContainer){
+            if(!(regexp.test(element.val()))){
+                element.addClass("ui-state-error");
+                updateTips(name + ' ' + formatTips, tipContainer);
+                return false;
+            } else {
+                return true;
+            }
+        }
+
+        function checkFormElement(element, name, regexp, formatTips, tipContainer){
+            if (checkVal(element, name, tipContainer)){
+                if (checkRegexp(element, name, regexp, formatTips, tipContainer)){
+                    return true;
+                } else {
+                    return false;
+                }
+            } else {
+                return false;
+            }
+        }
+
+        function checkConn() {
+            var mainTableAutoDataClearConfForm = $("#autoDataClearConfFormContainer").find("form#mainTableAutoDataClearConfForm"),
+                DNS =  mainTableAutoDataClearConfForm.find("#DNS"),
+                port = mainTableAutoDataClearConfForm.find("#port"),
+                DBName = mainTableAutoDataClearConfForm.find("#DBName"),
+                tipContainer = mainTableAutoDataClearConfForm.find("table td p.validateTips");
+
+            DNS.removeClass("ui-state-error");
+            port.removeClass("ui-state-error");
+
+            var postData = {
+                "DNS" : DNS.val(),
+                "port" : port.val(),
+                "DBName":DBName.val(),
+            };
+
+            $.ajax({
+                url:"{% url 'mycitsm.views.checkConn' %}",
+                data:postData,
+                type:"POST",
+                dataType:"json",
+                async:false,   
+                success:function(result){
+                    canConn = result.canConn;
+                },
+            });
+
+            if(canConn){
+            }else{
+                tips = "不能通过" + postData.DNS + ":" + postData.port + "连接至" + postData.DBName;
+                DNS.addClass("ui-state-error");
+                port.addClass("ui-state-error");
+                updateTips(tips ,tipContainer);
+            }
+
+            return canConn;
+
+        }
+
+        function showImg(container){
+          container.dialog({
+              resizable: false,
+              modal: true,
+              width:880,
+              height:550,
+              show:{effect:"fade",duration:300},
+              hide:{effect:"fade",duration:300},
+              open:function(){
+                    container.css({"width":"880","height":"550"});
+                    container.html("<div>Loading...</div>");
+                    container.find("div").css({"position": "relative","left": "45%","top":"45%"});
+                  },
+              close: function() {
+                        container.empty();
+                      }
+            });
+        }
+
+        function validateHostDBForm(){
+             var databaseName = $("#databaseName").val();
+             if (databaseName == null){
+                $("#errorContainer").dialog({
+                                  resizable: false,
+                                  modal: true,
+                                  width:520,
+                            });
+                return false;
+             }
+             return true;
+        }
+
+
+        function addDBDataTableSkeleton(container){
+            container.empty();
+            container.html('\
+                <table id="databaseInfoTable" class="stripe hover order-column" cellspacing="0" width="100%">\
+                    <thead>\
+                        <tr>\
+                            <th>Machine</th>\
+                            <th>Database</th>\
+                            <th>DBSize(kb)</th>\
+                            <th>Growth(weekly)</th>\
+                        </tr>\
+                    </thead>\
+                </table>'
+            );
+        }
+
+
+        function addDataTableSkeleton(container){
+            
+            container.empty();
+            container.html('\
+                <table id="tableInfoTable" class="stripe hover order-column" cellspacing="0" width="100%">\
+                    <thead>\
+                        <tr>\
+                            <th>Machine</th>\
+                            <th>Database</th>\
+                            <th>DBSize(kb)</th>\
+                            <th>Growth(weekly)</th>\
+                            <th>Table</th>\
+                            <th>DataClear</th>\
+                            <th>TableRow</th>\
+                            <th>Growth(weekly)</th>\
+                            <th>TableSize(kb)</th>\
+                            <th>Growth(weekly)</th>\
+                        </tr>\
+                    </thead>\
+                </table>'
+            );
+        }
+
+        function getConnInfo(dbname){
+            var postData = {
+                'DBName':dbname,
+            };
+
+            var connInfoList = [];
+
+            $.ajax({
+                url:"{% url 'mycitsm.views.getConnInfo' %}",
+                data:postData,
+                type:"POST",
+                dataType:"json",
+                async:false,
+                success:function(result){
+                    connInfoList = result.connInfoList;
+                },
+            });
+
+            return connInfoList
+        }
+
+        function getTableNames(dns, port, dbname){
+            var postData = {
+                'DNS':dns,
+                'port':port,
+                'DBName':dbname,
+            };
+
+            var responseData = ''
+
+            $.ajax({
+                url:"{% url 'mycitsm.views.getTableNames' %}",
+                data:postData,
+                type:"POST",
+                dataType:"json",
+                async:false,
+                success:function(result){
+                    responseData = result.tableNameList;
+                },
+            });
+
+            return responseData
+
+        }
+
+        function getTableType(dns, port, dbname, tablename){
+            var postData = {
+                'DNS':dns,
+                'port':port,
+                'DBName':dbname,
+                'tableName':tablename,
+            };
+
+            var tableType = '';
+
+            $.ajax({
+                url:"{% url 'mycitsm.views.getTableType' %}",
+                data:postData,
+                type:"POST",
+                dataType:"json",
+                async:false,
+                success:function(result){
+                    tableType = result.tableType;
+                },
+            });
+
+            return tableType
+        }
+
+        function getColumnNames(dns, port, dbname, tablename){
+            var postData = {
+                'DNS':dns,
+                'port':port,
+                'DBName':dbname,
+                'tableName':tablename,
+            };
+
+            var columns = {}
+
+            $.ajax({
+                url:"{% url 'mycitsm.views.getColumnNames' %}",
+                data:postData,
+                type:"POST",
+                dataType:"json",
+                async:false,
+                success:function(result){
+                    columns.keyColumn = result.keyColumnList;
+                    columns.timeColumn = result.timeColumnList;
+                },
+            });
+
+            return columns
+
+        }
+
+        function rebuildColumnAndTypeSelect(){
+            var mainTableAutoDataClearConfForm = $("#autoDataClearConfFormContainer form#mainTableAutoDataClearConfForm"),
+            DNS = mainTableAutoDataClearConfForm.find("#DNS").val(),
+            port = mainTableAutoDataClearConfForm.find("#port").val(),
+            DBName = mainTableAutoDataClearConfForm.find("#DBName").val(),
+            tableName = mainTableAutoDataClearConfForm.find("#tableName").val();
+
+            mainTableAutoDataClearConfForm.find("#columnName").empty();
+            mainTableAutoDataClearConfForm.find("#joinKey").empty();
+            mainTableAutoDataClearConfForm.find("#columnName").append("<option value=''> -- </option>");
+            mainTableAutoDataClearConfForm.find("#joinKey").append("<option value=''> -- </option>");
+
+            if(checkConn()){
+                columns =  getColumnNames(DNS, port, DBName, tableName);
+                timeColumns = columns.timeColumn;
+                keyColumns = columns.keyColumn;
+                                            
+                for(j = 0; j < timeColumns.length; j++){
+                    mainTableAutoDataClearConfForm.find("#columnName").append("<option value='"+ timeColumns[j].columnName +"'>" + timeColumns[j].columnName  + " " +timeColumns[j].columnType + "</option>");
+                }
+                
+                for(j = 0; j < keyColumns.length; j++){
+                    mainTableAutoDataClearConfForm.find("#joinKey").append("<option value='"+ keyColumns[j].columnName +"'>" + keyColumns[j].columnName + " " + keyColumns[j].columnType + "</option>");
+                }
+
+                tableType = getTableType(DNS, port, DBName, tableName);
+                if(tableType == 1){
+                    mainTableAutoDataClearConfForm.find("#type").val("1").change();
+                }else if (tableType == 2){
+                    mainTableAutoDataClearConfForm.find("#type").val("2").change();
+                }
+
+                
+            }
+        }
+
+
+        function setAutoDataClear(){
+           var mainTableAutoDataClearConfForm = $("#autoDataClearConfFormContainer").find("form#mainTableAutoDataClearConfForm");
+           
+           var  DNS = mainTableAutoDataClearConfForm.find("#DNS"),
+                port = mainTableAutoDataClearConfForm.find("#port"),
+                columnName = mainTableAutoDataClearConfForm.find("#columnName"),
+                joinKey = mainTableAutoDataClearConfForm.find("#joinKey"),
+                clearWindowStart = mainTableAutoDataClearConfForm.find("#clearWindowStart"),
+                clearWindowEnd = mainTableAutoDataClearConfForm.find("#clearWindowEnd"),
+                tipContainer = mainTableAutoDataClearConfForm.find("table td p.validateTips"),
+                type = mainTableAutoDataClearConfForm.find("#type");
+
+           var shouldCheckFields = $([]).add(DNS).add(port).add(columnName).add(joinKey).add(clearWindowStart).add(clearWindowEnd);
+           shouldCheckFields.removeClass("ui-state-error");
+
+           var formValid = true;
+           formValid = formValid && checkFormElement(DNS, "域名", dnsRegex , "格式错误: eg. ", tipContainer);
+           formValid = formValid && checkFormElement(columnName, "时间判断字段", columnRegex, "格式错误: eg. example_column, _exampleColumn", tipContainer);
+      
+           formValid = formValid && checkFormElement(clearWindowStart, "清理开始窗口", timeRegex, "格式错误: eg. 22:30:30", tipContainer);
+           formValid = formValid && checkFormElement(clearWindowEnd, "清理结束窗口", timeRegex, "格式错误: eg. 22:30:30", tipContainer);
+
+           if(formValid){
+               var data = {
+                    'hasAutoClearSetting':mainTableAutoDataClearConfForm.find("#hasAutoClearSetting").val(),
+                    'ID':mainTableAutoDataClearConfForm.find("#ID").val(),
+                    'DNS':mainTableAutoDataClearConfForm.find("#DNS").val(),
+                    'port':mainTableAutoDataClearConfForm.find("#port").val(),
+                    'priority':mainTableAutoDataClearConfForm.find("#priority").val(),
+                    'type':mainTableAutoDataClearConfForm.find("#type").val(),
+                    'DBName':mainTableAutoDataClearConfForm.find("#DBName").val(),
+                    'tableName':mainTableAutoDataClearConfForm.find("#tableName").val(),
+                    'columnName':mainTableAutoDataClearConfForm.find("#columnName").val(),
+                    'clearWindowStart':mainTableAutoDataClearConfForm.find("#clearWindowStart").val(),
+                    'clearWindowEnd':mainTableAutoDataClearConfForm.find("#clearWindowEnd").val(),
+                    'batchID':mainTableAutoDataClearConfForm.find("#batchID").val(),
+                    'runSleep':mainTableAutoDataClearConfForm.find("#runSleep").val(),
+                    'status':mainTableAutoDataClearConfForm.find("#status").val(),
+               };
+               if(type.val() == 2){
+                    data['keepDays'] = mainTableAutoDataClearConfForm.find("#keepDays").val();
+                    data['delTimeStep'] = mainTableAutoDataClearConfForm.find("#delTimeStep").val();
+                    data['timeStepType'] = mainTableAutoDataClearConfForm.find("#timeStepType").val();
+                    data['delRowStep'] = mainTableAutoDataClearConfForm.find("#delRowStep").val();
+                    data['joinKey'] = mainTableAutoDataClearConfForm.find("#joinKey").val();
+                    data['timeUnit'] = mainTableAutoDataClearConfForm.find("#timeUnit").val();
+               } else {
+                    data['partitionUnit'] =mainTableAutoDataClearConfForm.find("#partitionUnit").val();
+                    data['partitionKeepCount'] =mainTableAutoDataClearConfForm.find("#partitionKeepCount").val();
+                    data['partitionPreCount'] =mainTableAutoDataClearConfForm.find("#partitionPreCount").val();
+                    data['partitionPerUnit'] =mainTableAutoDataClearConfForm.find("#partitionPerUnit").val();
+               }  
+
+                dialogConfirm.dialog("option", "buttons", [
+                {
+                    text:"取消", 
+                    click:function(){
+                        $( this ).dialog( "close" );
+                    }
+                },
+                {
+                    text:"确认", 
+                    click:function(){
+                       $( this ).dialog( "close" );
+                       $.post("{% url 'mycitsm.views.setAutoDataClear' %}", data,
+                        function(result){
+                            if(result.hasPerm){
+                                if(result.hasAttachAutoClearSetting){
+                                    updateTips("存在附表配置,更新关联键为空之前先删除附表配置", tipContainer);
+                                }else{
+                                    if (result.opType === "update"){
+                                        switch(result.status){
+                                            case 0:
+                                                updateTips("配置未被更新", tipContainer);
+                                                break;
+                                            case 1:
+                                                if(joinKey.val()){
+                                                    getAttachAutoDataClear();
+                                                }else{
+                                                   getDataclear(mainTableAutoDataClearConfForm.find("#DBName").val(),mainTableAutoDataClearConfForm.find("#tableName").val());
+                                                }
+                                                break;
+                                            default:
+                                                updateTips("配置更新异常", tipContainer);
+                                        }
+                                   }else if(result.opType === "insert"){
+                                        switch(result.status){
+                                            case 0:
+                                                updateTips("配置插入失败", tipContainer);
+                                                break;
+                                            case 1:
+                                                mainTableAutoDataClearConfForm.find("#ID").val(result.insertID);
+                                                if(joinKey.val()){
+                                                    getAttachAutoDataClear();
+                                                }else{
+                                                    getDataclear(mainTableAutoDataClearConfForm.find("#DBName").val(),mainTableAutoDataClearConfForm.find("#tableName").val());
+                                                }
+                                                break;
+                                            default:
+                                                updateTips("配置插入异常", tipContainer);
+                                        }
+                                   }
+                                }
+                                
+                            }else{
+                                updateTips("您没有权限", tipContainer);
+                            }
+                        },
+                        "json"
+                    );
+
+                   }
+                },
+                ]);
+
+        dialogConfirm.dialog("open");                 
+
+            }
+
+        }
+
+        function getDataclear(dbname, tbname) {
+            $("p.validateTips").empty();
+            $("#attachTableAutoDataClearConfFormContainer").hide();
+            $("#mainTableAutoDataClearConfFormContainer").show();
+            var mainTableAutoDataClearConfForm = $("#autoDataClearConfFormContainer form#mainTableAutoDataClearConfForm");
+            
+            mainTableAutoDataClearConfForm.find("#DNS").empty()
+            mainTableAutoDataClearConfForm.find("#DNS").append("<option value=''> -- </option>")
+            //mainTableAutoDataClearConfForm.find("#DNS").append("<option value='192.168.83.36'>192.168.83.36</option>")
+                       
+
+            connInfoList = getConnInfo(dbname);
+            for(var i = 0; i < connInfoList.length; i++){
+
+                    if (connInfoList[i].host.indexOf("t.qa")==-1) {
+                    mainTableAutoDataClearConfForm.find("#DNS").append("<option value='"+ connInfoList[i].host +"'>" + connInfoList[i].host + "</option>");
+                }
+                }  
+
+            $.post("{% url 'mycitsm.views.getAutoDataClearConfig' %}", {
+                                'databaseName':dbname,
+                                'tableName': tbname,               
+                            },
+
+                    function(result){
+                       
+                        mainTableAutoDataClearConfForm.find("#hasAutoClearSetting").val(result.hasAutoClearSetting);
+                       
+                        if (result.hasAutoClearSetting){
+
+                            mainTableAutoDataClearConfForm.parent().find("h1").text("已配置主表自动清理，可更新、删除该配置");                                
+                            mainTableAutoDataClearConfForm.find("button.submit").text("更新主表配置");
+                            mainTableAutoDataClearConfForm.find("button.delete").show();
+                            if(result.joinKey){
+                                mainTableAutoDataClearConfForm.find("button.chkSet").show();
+                            }else{
+                                mainTableAutoDataClearConfForm.find("button.chkSet").hide();
+                            }                       
+
+                            mainTableAutoDataClearConfForm.find("#ID").val(result.ID);
+                            mainTableAutoDataClearConfForm.find("#DNS").val(result.DNS);
+                            mainTableAutoDataClearConfForm.find("#port").val(result.port);
+
+                            mainTableAutoDataClearConfForm.find("#priority").val(result.priority);
+                            mainTableAutoDataClearConfForm.find("label[for=prioritySlider] span").text(result.priority);
+                            mainTableAutoDataClearConfForm.find("#prioritySlider").slider("value", result.priority);
+
+                            mainTableAutoDataClearConfForm.find("#type").val(result.type);
+                            mainTableAutoDataClearConfForm.find("#DBName").val(result.DBName);
+                            mainTableAutoDataClearConfForm.find("#tableName").val(result.tableName);
+                            rebuildColumnAndTypeSelect();              
+                            mainTableAutoDataClearConfForm.find("#columnName").val(result.columnName);
+                            mainTableAutoDataClearConfForm.find("#clearWindowStart").val(result.clearWindowStart);
+                            mainTableAutoDataClearConfForm.find("#clearWindowEnd").val(result.clearWindowEnd);
+                            mainTableAutoDataClearConfForm.find("#batchID").val(result.batchID);
+                            mainTableAutoDataClearConfForm.find("#runSleep").val(result.runSleep);
+                            mainTableAutoDataClearConfForm.find("#status").val(result.status);
+                            mainTableAutoDataClearConfForm.find("#lastSuccessTime").val(result.lastSuccessTime);
+                            mainTableAutoDataClearConfForm.find("#minTime").val(result.minTime);
+
+                            if(result.type == 1){
+                                mainTableAutoDataClearConfForm.find("#keepDays").val(60);
+                                mainTableAutoDataClearConfForm.find("label[for=keepDaysSlider] span").text(60);
+                                mainTableAutoDataClearConfForm.find("#keepDaysSlider").slider("value", 60);
+
+                                mainTableAutoDataClearConfForm.find("#partitionUnit").val(result.partitionUnit);
+
+                                mainTableAutoDataClearConfForm.find("#partitionKeepCount").val(result.partitionKeepCount);
+                                mainTableAutoDataClearConfForm.find("label[for=partitionKeepCountSlider] span").text(result.partitionKeepCount);
+                                mainTableAutoDataClearConfForm.find("#partitionKeepCountSlider").slider("value", result.partitionKeepCount);
+
+                                mainTableAutoDataClearConfForm.find("#partitionPreCount").val(result.partitionPreCount);
+                                mainTableAutoDataClearConfForm.find("label[for=partitionPreCountSlider] span").text(result.partitionPreCount);
+                                mainTableAutoDataClearConfForm.find("#partitionPreCountSlider").slider("value", result.partitionPreCount);
+
+                                mainTableAutoDataClearConfForm.find("#partitionPerUnit").val(result.partitionPerUnit);
+                            } else {
+
+                                mainTableAutoDataClearConfForm.find("#keepDays").val(result.keepDays);
+                                mainTableAutoDataClearConfForm.find("label[for=keepDaysSlider] span").text(result.keepDays);
+                                mainTableAutoDataClearConfForm.find("#keepDaysSlider").slider("value", result.keepDays);
+
+                                mainTableAutoDataClearConfForm.find("#delTimeStep").val(result.delTimeStep);
+                                mainTableAutoDataClearConfForm.find("#timeStepType").val(result.timeStepType);
+                                mainTableAutoDataClearConfForm.find("#delRowStep").val(result.delRowStep);
+                                mainTableAutoDataClearConfForm.find("#joinKey").val(result.joinKey);
+                                mainTableAutoDataClearConfForm.find("#timeUnit").val(result.timeUnit);
+
+                                mainTableAutoDataClearConfForm.find("#partitionKeepCount").val(10);
+                                mainTableAutoDataClearConfForm.find("label[for=partitionKeepCountSlider] span").text(10);
+                                mainTableAutoDataClearConfForm.find("#partitionKeepCountSlider").slider("value", 10);
+
+                                mainTableAutoDataClearConfForm.find("#partitionPreCount").val(5);
+                                mainTableAutoDataClearConfForm.find("label[for=partitionPreCountSlider] span").text(5);
+                                mainTableAutoDataClearConfForm.find("#partitionPreCountSlider").slider("value", 5);
+
+                            }
+                            
+
+                        }else{
+                          
+                            mainTableAutoDataClearConfForm.parent().find("h1").text("未配置主表自动清理，可插入新配置");
+                            mainTableAutoDataClearConfForm.find("button.submit").text("插入主表配置");
+                            mainTableAutoDataClearConfForm.find("button.delete").hide();
+                            mainTableAutoDataClearConfForm.find("button.chkSet").hide();
+
+                            mainTableAutoDataClearConfForm.find("#ID").val("");                             
+                            mainTableAutoDataClearConfForm.find("#DNS").val("");
+                            mainTableAutoDataClearConfForm.find("#DBName").val(dbname);
+                            mainTableAutoDataClearConfForm.find("#tableName").val(tbname);
+
+                            mainTableAutoDataClearConfForm.find("#clearWindowStart").val('00:00:00');
+                            mainTableAutoDataClearConfForm.find("#clearWindowEnd").val('00:30:00');
+                            mainTableAutoDataClearConfForm.find("#joinKey").val("");
+
+                            mainTableAutoDataClearConfForm.find("#keepDays").val(60);
+                            mainTableAutoDataClearConfForm.find("label[for=keepDaysSlider] span").text(60);
+                            mainTableAutoDataClearConfForm.find("#keepDaysSlider").slider("value", 60);
+
+                            mainTableAutoDataClearConfForm.find("#partitionKeepCount").val(10);
+                            mainTableAutoDataClearConfForm.find("label[for=partitionKeepCountSlider] span").text(10);
+                            mainTableAutoDataClearConfForm.find("#partitionKeepCountSlider").slider("value", 10);
+
+                            mainTableAutoDataClearConfForm.find("#partitionPreCount").val(5);
+                            mainTableAutoDataClearConfForm.find("label[for=partitionPreCountSlider] span").text(5);
+                            mainTableAutoDataClearConfForm.find("#partitionPreCountSlider").slider("value", 5);
+
+                        }
+
+                        setDelType( mainTableAutoDataClearConfForm.find("#type"));
+                            
+                    },
+                            "json"
+                        );
+            
+        }
+
+        function setDelType(nowThis){
+            
+            var mainTableAutoDataClearConfForm = $("#autoDataClearConfFormContainer form#mainTableAutoDataClearConfForm"),
+
+                keepDays = mainTableAutoDataClearConfForm.find("#keepDays"),
+                keepDaysLabel = mainTableAutoDataClearConfForm.find("label[for=keepDaysSlider] span"),
+                keepDaysSlider = mainTableAutoDataClearConfForm.find("#keepDaysSlider"),
+
+                delTimeStep = mainTableAutoDataClearConfForm.find("#delTimeStep"),
+                timeStepType = mainTableAutoDataClearConfForm.find("#timeStepType"),
+                delRowStep = mainTableAutoDataClearConfForm.find("#delRowStep"),
+                joinKey = mainTableAutoDataClearConfForm.find("#joinKey"),
+                timeUnit = mainTableAutoDataClearConfForm.find("#timeUnit"),
+
+
+                partitionUnit = mainTableAutoDataClearConfForm.find("#partitionUnit"),
+
+                partitionKeepCount = mainTableAutoDataClearConfForm.find("#partitionKeepCount"),
+                partitionKeepCountLabel = mainTableAutoDataClearConfForm.find("label[for=partitionKeepCountSlider] span"),
+                partitionKeepCountSlider = mainTableAutoDataClearConfForm.find("#partitionKeepCountSlider"),
+
+                partitionPreCount = mainTableAutoDataClearConfForm.find("#partitionPreCount"),
+                partitionPreCountLabel = mainTableAutoDataClearConfForm.find("label[for=partitionPreCountSlider] span"),
+                partitionPreCountSlider = mainTableAutoDataClearConfForm.find("#partitionPreCountSlider"),
+
+                partitionPerUnit = mainTableAutoDataClearConfForm.find("#partitionPerUnit");
+
+
+            var delByTimeFields = $([]).add(keepDays).add(delTimeStep).add(delRowStep).add(joinKey).add(timeUnit);
+            var delByPartitionFields = $([]).add(partitionUnit).add(partitionKeepCount).add(partitionPreCount).add(partitionPreCount); 
+
+            
+            if($(nowThis).val() == 1){//分区表
+
+                delByPartitionFields.removeAttr("disabled");
+                partitionKeepCountSlider.slider("enable");
+                partitionPreCountSlider.slider("enable");
+
+                delByTimeFields.attr({"disabled":"disabled"});
+                keepDaysSlider.slider("disable")
+
+                delByTimeFields.parent().parent().hide()
+                delByPartitionFields.parent().parent().show();
+                partitionPerUnit.parent().parent().show();
+
+
+            }else{//普通表
+                delByTimeFields.removeAttr("disabled");
+                keepDaysSlider.slider("enable")
+
+                delByPartitionFields.attr({"disabled":"disabled"});
+                partitionKeepCountSlider.slider("disable");
+                partitionPreCountSlider.slider("disable");
+
+                delByPartitionFields.parent().parent().hide();
+                partitionPerUnit.parent().parent().hide();
+
+                delByTimeFields.parent().parent().show()
+
+
+
+            }
+        }
+
+        function setTimeType(nowThis){
+             var mainTableAutoDataClearConfForm = $("#autoDataClearConfFormContainer form#mainTableAutoDataClearConfForm"),
+                DNS = mainTableAutoDataClearConfForm.find("#DNS"),
+                port = mainTableAutoDataClearConfForm.find("#port"),
+                DBName = mainTableAutoDataClearConfForm.find("#DBName"),
+                tableName = mainTableAutoDataClearConfForm.find("#tableName"),
+                timeStepType = mainTableAutoDataClearConfForm.find("#timeStepType"),
+                partitionPerUnit = mainTableAutoDataClearConfForm.find("#partitionPerUnit"),
+                timeUnit = mainTableAutoDataClearConfForm.find("#timeUnit");
+
+                postData = {
+                    'DNS':DNS.val(),
+                    'port':port.val(),
+                    'DBName':DBName.val(),
+                    'tableName':tableName.val(),
+                    'columnName':$(nowThis).val(),
+                }
+
+                $.ajax({
+                    url:"{% url 'mycitsm.views.getColumnType' %}",
+                    data:postData,
+                    type:"POST",
+                    dataType:"json",
+                    success:function(result){
+                        if(result.columnType.toUpperCase() == "DATETIME" || result.columnType.toUpperCase() =="TIMESTAMP" ){
+                            timeStepType.val("D");
+                            if(result.columnType.toUpperCase() == "DATETIME"){
+                                partitionPerUnit.val("D");
+                            }else if(result.columnType.toUpperCase() =="TIMESTAMP"){
+                                partitionPerUnit.val("S");
+                            }   
+                        } else {
+                            timeStepType.val("I");
+                            partitionPerUnit.val("S");
+                            
+                        }
+                    },
+                });
+            
+        }
+
+        function delAutoDataClear(){
+            dialogConfirm.dialog("option", "buttons", [
+                {
+                    text:"取消", 
+                    click:function(){
+                        $( this ).dialog( "close" );
+                    }
+                },
+                {
+                    text:"确认", 
+                    click:function(){
+                       $( this ).dialog( "close" );
+
+                       var mainTableAutoDataClearConfForm = $("#autoDataClearConfFormContainer").find("form#mainTableAutoDataClearConfForm");
+                       var tipContainer = mainTableAutoDataClearConfForm.find("table td p.validateTips");           
+                       var data = {
+                            'ID':mainTableAutoDataClearConfForm.find("#ID").val(),
+                            'DBName':mainTableAutoDataClearConfForm.find("#DBName").val(),
+                            'tableName':mainTableAutoDataClearConfForm.find("#tableName").val()
+                       };
+
+                       $.post("{% url 'mycitsm.views.delAutoDataClear' %}", data,
+                                function(result){
+                                    if(result.hasPerm){
+                                        if (result.attachAutoClearSettingCnt > 0 ){
+                                           updateTips("存在附表配置，删除主表配置前先删除附表配置", tipContainer); 
+                                        }else {
+                                            switch(result.status){
+                                                case 0:
+                                                    updateTips("配置未被删除", tipContainer);
+                                                    break;
+                                                case 1:
+                                                    mainTableAutoDataClearConfForm.parent().find("h1").text("未配置主表自动清理，可插入新配置");
+                                                    mainTableAutoDataClearConfForm.find("button.submit").text("插入主表配置");
+                                                    mainTableAutoDataClearConfForm.find("button.delete").hide();
+                                                    mainTableAutoDataClearConfForm.find("button.chkSet").hide();
+
+                                                    mainTableAutoDataClearConfForm.find("#hasAutoClearSetting").val(false); 
+                                                    mainTableAutoDataClearConfForm.find("#ID").val("");                             
+                                                    mainTableAutoDataClearConfForm.find("#DNS").val("");
+                                                    mainTableAutoDataClearConfForm.find("#columnName").val("");        
+                                                    mainTableAutoDataClearConfForm.find("#clearWindowStart").val('00:00:00');
+                                                    mainTableAutoDataClearConfForm.find("#clearWindowEnd").val('00:30:00');
+                                                    mainTableAutoDataClearConfForm.find("#joinKey").val("");
+                                                    mainTableAutoDataClearConfForm.find("#lastSuccessTime").val("");
+                                                    mainTableAutoDataClearConfForm.find("#minTime").val("");
+                                                    tipContainer.empty();
+                                                    break;
+                                                default:
+                                                    updateTips("配置删除异常", tipContainer);
+                                            }
+                                        }
+                                    }else{
+                                        updateTips("您没有权限", tipContainer);
+                                    }
+                                },
+                                "json"
+                        );
+                    }
+                }
+
+                ]);
+
+            dialogConfirm.dialog("open");      
+        }
+
+
+
+        function buildAttachTableAutoDataClearConfInsertForm(){          
+            var attachTableAutoDataClearConfForm = $("#autoDataClearConfFormContainer").find("form#attachTableAutoDataClearConfForm");
+            var mainTableAutoDataClearConfForm = $("#autoDataClearConfFormContainer").find("form#mainTableAutoDataClearConfForm");
+            var attachTableAutoDataClearConfFormFieldset = attachTableAutoDataClearConfForm.find("fieldset")
+            attachTableAutoDataClearConfFormFieldset.empty();
+
+            $("#attachTableAutoDataClearConfFormContainer").hide();
+            $("#attachTableAutoDataClearConfFormContainer").fadeIn();
+
+            var tableNames = '',
+            DNS = mainTableAutoDataClearConfForm.find("#DNS").val(),
+            port = mainTableAutoDataClearConfForm.find("#port").val(),
+            DBName = mainTableAutoDataClearConfForm.find("#DBName").val();
+            tableName = mainTableAutoDataClearConfForm.find("#tableName").val();
+
+            tableNames = getTableNames(DNS, port, DBName) 
+
+            attachTableAutoDataClearConfForm.parent().find("h1").text("插入新的附表配置");
+            attachTableAutoDataClearConfFormFieldset.html('\
+              <table id="insertAttachTableAutoDataClearConf">\
+              <tbody>\
+              <tr>\
+                <td>\
+                    <label for="attachDBName">库名：</label>\
+                </td>\
+                <td>\
+                    <input type="text"  name="attachDBName" id="attachDBName" value="" class="text ui-widget-content ui-corner-all attachDBName" readonly="readonly">\
+                </td>\
+              </tr>\
+              <tr>\
+                <td>\
+                    <label for="attachTableName">表名：</label>\
+                </td>\
+                <td>\
+                    <select name="attachTableName" id="attachTableName" class="text ui-widget-content ui-corner-all attachTableName" >\
+                    <option value=""> -- </option>\
+                    </select>\
+                </td>\
+              </tr>\
+              <tr>\
+                <td>\
+                    <label for="attachJoinKey" title="用于主附表依赖清理">关联字段：</label>\
+                </td>\
+                <td>\
+                    <select name="attachJoinKey" id="attachJoinKey" class="text ui-widget-content ui-corner-all attachJoinKey" title="用于主附表依赖清理">\
+                    </sellect>\
+                </td>\
+              </tr>\
+              <tr>\
+                <td></td>\
+                <td>\
+                <p class="validateTips"></p>\
+                <button type="button" onclick="setAttachAutoDataClear(this)">插入附表配置</button>\
+                <button type="button" onclick="getDataclear(\''+ DBName + '\',\'' + tableName +'\')">查看主表配置</button>\
+                </td>\
+              </tr></tbody></table>');
+
+                attachTableAutoDataClearConfForm.find("#attachDBName").val(mainTableAutoDataClearConfForm.find("#DBName").val());
+
+                for(j = 0; j < tableNames.length; j++){
+                    attachTableAutoDataClearConfForm.find("#attachTableName").append("<option value='"+ tableNames[j] +"'>" + tableNames[j] +"</option>");
+                 }
+                attachTableAutoDataClearConfForm.find("#attachTableName").val("");
+
+                var requsetURL = "{% url 'mycitsm.views.chainJoinKeyToTableName' %}";
+                 requsetURL = requsetURL+ "?DNS=" + DNS;
+                 requsetURL = requsetURL + "&port=" + port;
+                 requsetURL = requsetURL + "&DBName=" + DBName;
+                          
+                 attachTableAutoDataClearConfForm.find("#attachJoinKey").remoteChained({
+                     parents: attachTableAutoDataClearConfForm.find("#attachTableName"), 
+                     url: requsetURL,  
+                     bootstrap : {
+                        "":" -- ",
+                        "selected":""
+                     }         
+                 }); 
+            };
+
+        function getAttachAutoDataClear(){
+            $("#mainTableAutoDataClearConfFormContainer").hide();
+            $("#attachTableAutoDataClearConfFormContainer").hide();
+
+            var attachTableAutoDataClearConfForm = $("#autoDataClearConfFormContainer").find("form#attachTableAutoDataClearConfForm");
+            var mainTableAutoDataClearConfForm = $("#autoDataClearConfFormContainer").find("form#mainTableAutoDataClearConfForm");
+            var attachTableAutoDataClearConfFormFieldset = attachTableAutoDataClearConfForm.find("fieldset")
+            attachTableAutoDataClearConfFormFieldset.empty();
+
+            //服务器端获取数据库中的表名
+            var tableNames = '',
+            DNS = mainTableAutoDataClearConfForm.find("#DNS").val(),
+            port = mainTableAutoDataClearConfForm.find("#port").val(),
+            DBName = mainTableAutoDataClearConfForm.find("#DBName").val();
+            tableName = mainTableAutoDataClearConfForm.find("#tableName").val();
+
+            tableNames = getTableNames(DNS, port, DBName)      
+     
+            //服务器端获取附表配置，并根据结果构建表单
+            var data = {
+                'PID' :mainTableAutoDataClearConfForm.find("#ID").val(),
+            };
+        
+            $.post("{% url 'mycitsm.views.getAttachAutoDataClearConfig' %}", data,
+                    function(result){
+                       attachTableAutoDataClearConfForm.find("#hasAttachAutoClearSetting").val(result.hasAttachAutoClearSetting);
+
+                       if (result.hasAttachAutoClearSetting){
+                            attachTableAutoDataClearConfForm.parent().find("h1").text("已配置附表自动清理，可更新、删除附表配置或插入新的附表配置"); 
+                            for(var i = 0; i < result.attachAutoClearSettingList.length; i++ ){
+
+                                attachTableAutoDataClearConfFormFieldset.append('\
+                                  <table>\
+                                  <tbody>\
+                                  <input type="hidden" name="ID'+ i +'" id="ID' + i + '" value="' + result.attachAutoClearSettingList[i].ID + '" class="text ui-widget-content ui-corner-all ID">\
+                                  <tr>\
+                                    <td>\
+                                        <label for="attachDBName' + i + '">库名：</label>\
+                                    </td>\
+                                    <td>\
+                                        <input type="text" name="attachDBName'+ i +'" id="attachDBName' + i + '" value="' + result.attachAutoClearSettingList[i].DBName + '" class="text ui-widget-content ui-corner-all attachDBName" readonly="readonly">\
+                                    </td>\
+                                  </tr>\
+                                  <tr>\
+                                    <td>\
+                                        <label for="attachTableName' + i + '">表名：</label>\
+                                    </td>\
+                                    <td>\
+                                        <select  name="attachTableName' + i + '" id="attachTableName' + i + '" class="text ui-widget-content ui-corner-all attachTableName">\
+                                        <option value=""> -- </option>\
+                                        </select>\
+                                    </td>\
+                                  </tr>\
+                                  <tr>\
+                                    <td>\
+                                        <label for="attachJoinKey' + i + '" title="用于主附表依赖清理">关联字段：</label>\
+                                    </td>\
+                                    <td>\
+                                        <select name="attachJoinKey' + i + '" id="attachJoinKey' + i + '"  class="text ui-widget-content ui-corner-all attachJoinKey" title="用于主附表依赖清理">\
+                                        </select>\
+                                    </td>\
+                                  </tr>\
+                                  <tr>\
+                                    <td></td>\
+                                    <td>\
+                                     <p class="validateTips"></p>\
+                                    <button type="button"  onclick="setAttachAutoDataClear(this)">更新附表配置</button>\
+                                    <button type="button"  onclick="delAttachAutoDataClear(this)">删除附表配置</button>\
+                                    </td>\
+                                  </tr><tr><td></td><td></td></tr></tbody></table>');
+                           
+                                 for(var j = 0; j < tableNames.length; j++){
+                                    attachTableAutoDataClearConfForm.find("#attachTableName" + i ).append("<option value='"+ tableNames[j] +"'>" + tableNames[j] +"</option>");
+                                 }
+                                 attachTableAutoDataClearConfForm.find("#attachTableName" + i ).val(result.attachAutoClearSettingList[i].tableName);
+
+                                
+                                var bootstrapObj = {};
+                                
+                                var postData = {
+                                    'DNS':DNS,
+                                    'port':port,
+                                    'DBName':DBName,
+                                    'tableName':result.attachAutoClearSettingList[i].tableName,
+                                }
+
+                                $.ajax({
+                                    url:"{% url 'mycitsm.views.chainJoinKeyToTableName' %}",
+                                    data:postData,
+                                    type:"GET",
+                                    dataType:"json",
+                                    async:false,
+                                    success:function(result){
+                                        for(var k=0; k<result.length; k++){
+                                          bootstrapObj[result[k][0]]=  result[k][1];
+                                        }
+                                    },
+                                });
+            
+                                 var requsetURL = "{% url 'mycitsm.views.chainJoinKeyToTableName' %}";
+                                 requsetURL += "?DNS=" + DNS;
+                                 requsetURL += "&port=" + port;
+                                 requsetURL += "&DBName=" + DBName;
+
+                                 var selectedJoinKey = result.attachAutoClearSettingList[i].joinKey;                                 
+                                 bootstrapObj["selected"] = selectedJoinKey;
+                                 
+                                 attachTableAutoDataClearConfForm.find("#attachJoinKey" + i ).remoteChained({
+                                     parents: attachTableAutoDataClearConfForm.find("#attachTableName" + i ), 
+                                     url: requsetURL,
+                                     bootstrap : bootstrapObj,       
+                                 });               
+                                                 
+                            }
+
+                            attachTableAutoDataClearConfFormFieldset.append('\
+                                <hr/>\
+                                <table>\
+                                <tbody>\
+                                <tr>\
+                                <td></td>\
+                                <td>\
+                                <button type="button" onclick="buildAttachTableAutoDataClearConfInsertForm()">添加附表配置</button>\
+                                <button type="button" onclick="getDataclear(\''+ DBName + '\',\'' + tableName +'\')">查看主表配置</button>\
+                                </td>\
+                              </tr></tbody></table>')
+                
+                       }else{                            
+                            buildAttachTableAutoDataClearConfInsertForm();
+                       }
+                    },
+                    "json"
+                );
+     
+            $("#attachTableAutoDataClearConfFormContainer").fadeIn();
+
+        }
+
+
+        function setAttachAutoDataClear(nowThis){
+            var attachTableAutoDataClearConfForm = $("#autoDataClearConfFormContainer").find("form#attachTableAutoDataClearConfForm");
+            var mainTableAutoDataClearConfForm = $("#autoDataClearConfFormContainer").find("form#mainTableAutoDataClearConfForm");
+           
+            var updateUnit = $(nowThis).parent().parent().parent().parent();
+            var  DBName = updateUnit.find("input.attachDBName"),
+                tableName = updateUnit.find("select.attachTableName"),
+                joinKey = updateUnit.find("select.attachJoinKey"),
+                tipContainer = updateUnit.find("p.validateTips");
+       
+            var shouldCheckFields = $([]).add(DBName).add(tableName).add(joinKey);
+            shouldCheckFields.removeClass("ui-state-error");
+
+            var formValid = true;
+            formValid = formValid && checkFormElement(DBName, "库名", columnRegex , "格式错误: eg. example_dbname, _exampleDBName", tipContainer);
+            formValid = formValid && checkFormElement(tableName, "表名", columnRegex, "格式错误: eg. example_tableName, _exampleTableName", tipContainer);
+            formValid = formValid && checkFormElement(joinKey, "关联字段：", columnRegex,"格式错误: eg. example_key, _exampleKey", tipContainer);
+
+            if (formValid){
+                var data = {
+                        'hasAttachAutoClearSetting':attachTableAutoDataClearConfForm.find("#hasAttachAutoClearSetting").val(),
+                        'PID':mainTableAutoDataClearConfForm.find("#ID").val(),
+                        'ID':updateUnit.find("input.ID").val(),
+                        'DBName':DBName.val(),
+                        'tableName':tableName.val(),
+                        'joinKey':joinKey.val()
+                   };
+                
+                dialogConfirm.dialog("option", "buttons", [
+                {
+                    text:"取消", 
+                    click:function(){
+                        $( this ).dialog( "close" );
+                    }
+                },
+                {
+                    text:"确认", 
+                    click:function(){
+                       $( this ).dialog( "close" );           
+                       
+
+                        $.post("{% url 'mycitsm.views.setAttachAutoDataClear' %}", data,
+                                    function(result){
+                                        if(result.hasPerm){
+                                            if (result.opType === "update"){
+                                                switch(result.status){
+                                                    case 0:
+                                                        updateTips("配置未被更新", tipContainer);
+                                                        break;
+                                                    case 1:
+                                                        updateTips("配置更新成功", tipContainer);
+                                                        break;
+                                                    default:
+                                                        updateTips("配置更新异常", tipContainer);
+                                                }
+                                           }else if(result.opType === "insert"){
+                                                switch(result.status){
+                                                    case 0:
+                                                        updateTips("配置插入失败", tipContainer);
+                                                        break;
+                                                    case 1:
+                                                        attachTableAutoDataClearConfForm.find("#hasAttachAutoClearSetting").val(true);
+                                                        updateUnit.find("input.ID").val(result.insertID);
+                                                        getAttachAutoDataClear();
+                                                        break;
+                                                    default:
+                                                        updateTips("配置插入异常", tipContainer);
+                                                }
+                                           }
+                                        } else {
+                                            updateTips("您没有权限", tipContainer);
+                                        }
+                                    },
+                                    "json"
+                                 );               
+                   }
+                },
+             ]);
+                
+             dialogConfirm.dialog("open"); 
+            }
+
+        }
+
+
+        function delAttachAutoDataClear(nowThis){
+           dialogConfirm.dialog("option", "buttons", [
+                {
+                    text:"取消", 
+                    click:function(){
+                        $( this ).dialog( "close" );
+                    }
+                },
+                {
+                    text:"确认", 
+                    click:function(){
+                       $( this ).dialog( "close" );
+                       var attachTableAutoDataClearConfForm = $("#autoDataClearConfFormContainer").find("form#attachTableAutoDataClearConfForm");
+                       var mainTableAutoDataClearConfForm = $("#autoDataClearConfFormContainer").find("form#mainTableAutoDataClearConfForm");
+                       
+                       var deleteUnit = $(nowThis).parent().parent().parent().parent();
+                       var tipContainer = deleteUnit.find("p.validateTips");
+                       
+                       var data = {
+                            'PID':mainTableAutoDataClearConfForm.find("#ID").val(),
+                            'ID':deleteUnit.find("input.ID").val()
+                       };
+
+                       $.post("{% url 'mycitsm.views.delAttachAutoDataClear' %}", data,
+                                function(result){                            
+                                    if(result.hasPerm){
+                                        switch(result.status){
+                                        case 0:
+                                            updateTips("配置未被删除", tipContainer);
+                                            break;
+                                        case 1:
+                                            if(result.attachAutoClearSettingCnt > 0){
+                                                deleteUnit.remove();
+                                            }else{
+                                                buildAttachTableAutoDataClearConfInsertForm();
+                                            }
+                                            break;
+                                        default:
+                                            updateTips("配置删除异常", tipContainer);
+                                        }
+                                    } else {
+                                        updateTips("您没有权限", tipContainer);
+                                    }
+                                    
+                                },
+                                "json"
+                            );
+                    }
+                },
+
+            ]);
+           
+            dialogConfirm.dialog("open");
+        }
+
+        function backToAutoDataClearForm(){
+            $("p.validateTips").empty();
+            $("#attachTableAutoDataClearConfFormContainer").hide();
+            $("#mainTableAutoDataClearConfFormContainer").show();
+        }
+
+        function backToDatabaseInfoTable(){
+            $("#tableInfoContainer").hide();
+            $("#databaseInfoContainer").fadeIn();
+        }
+
+        function drawDBDataTable(container, paramType){
+                var formValid = true;
+                var tipContainer = $(".hostDBValidateTips");
+                var machineNameElem = $("#machineName"),
+                    databaseNameElem = $("#databaseName");
+                var shouldCheckFields = $([]).add(machineNameElem).add(databaseNameElem);
+
+                shouldCheckFields.removeClass("ui-state-error");
+
+                if(paramType == "HOST"){
+                    formValid = checkVal(machineNameElem, "主机名", tipContainer) && formValid;
+                }else if(paramType == "DB"){
+                    formValid = checkVal(databaseNameElem,"数据库", tipContainer) && formValid;
+                }
+                
+                if(formValid){
+
+                    var machineName = machineNameElem.val();
+                    var databaseName = databaseNameElem.val();
+
+                    $("#tableInfoContainer").hide();
+                    container.hide();
+                    addDBDataTableSkeleton(container);
+ 
+                    var machineNameParam = $.param({"machineName":machineName},true); 
+                    var databaseNameParam = $.param({"databaseName":databaseName},true);
+
+                    $("#databaseInfoTable").dataTable( {
+                        "ajax": {
+                            "url": "{% url 'mycitsm.views.getDBDbCapacityData' %}",
+                            "type": "POST",
+                            "data": {"machineName":machineNameParam, "databaseName":databaseNameParam, "paramType":paramType},
+                            "dataType":"json",
+                        },
+                        
+                        "columnDefs": [
+                            { 
+                                className: "machineName", 
+                                "targets": [0] 
+                            },
+
+                            { 
+                                className: "databaseName", 
+                                "targets": [1],
+                                "render":  function ( data, type, full, meta ) {
+                                              return '<a href="javascript:void(0)">' + data +'</a>';
+                                            }, 
+
+                            },
+
+                            { 
+                                className: "clickableData databaseSize", 
+                                "targets": [2],
+                                "render":  function ( data, type, full, meta ) {
+                                              return '<a href="javascript:void(0)">' + data +'</a>';
+                                            },
+                            },
+                          ],
+
+                        "lengthMenu": [20, 50, 100],
+                        "order": [[ 3, "desc" ]],   
+                        "dom": '<fl<"toolbarDataDate"><t>ip>',
+                    });
+                    
+                    $("div.dataTables_wrapper div.dataTables_filter ").css({"float":"left"});
+                    $("div.dataTables_wrapper div.dataTables_length ").css({"float":"right","margin-left":"10px"});             
+                    $("div.dataTables_wrapper div.toolbarDataDate").css({"float":"right"});
+                    $("div.dataTables_wrapper div.toolbarDataDate").html('<label>DataDate:<input disabled="disabled" ></label>');
+            
+                    $.post("{% url 'mycitsm.views.getDbCapacityDataDate' %}", {              
+                        },
+                        function(result){
+                            var dataDate = result.dataDate;                                          
+                            $("div.dataTables_wrapper div.toolbarDataDate input").val(dataDate);
+                        },
+                        "json"
+                    );
+                    
+                    $('#databaseInfoTable tbody').on('click', 'td', function(){
+                      
+                        var machineName = $(this).parent().find($(".machineName")).text();
+                        var databaseName = $(this).parent().find($(".databaseName")).text();
+                        
+                        if ($(this).hasClass("databaseSize")){
+                            showImg($("#imgContainer"));
+
+                            var titleText = 'Database Size Profile';
+                            var subtitleText = 'Machine:' + machineName +' Database:' + databaseName;
+                            var yAisTitleText = "Database Size";
+                            var series = {
+                                name: 'Database Size(kb)',
+                                color: 'rgb(124,181,236)',
+                                type:'column',                   
+                                data: [],
+                                tooltip: {
+                                    valueSuffix: 'kb',
+                                },
+                            };
+
+                            $.post("{% url 'mycitsm.views.getSpecDbCapacityData' %}", {
+                                    'machineName':machineName, 
+                                    'databaseName':databaseName,
+                                    'category': 'databaseSize',                
+                                },
+                                function(result){
+                                    series.data = result.databaseSizeData;                                                 
+                                    drawImg($("#imgContainer"), 
+                                                titleText, 
+                                                subtitleText,   
+                                                yAisTitleText,
+                                                series);                
+                                          
+                                },
+                                "json"
+                            );
+
+                        } else if ($(this).hasClass("databaseName")){
+                            var tableInfoContainer = $("#tableInfoContainer");
+                            drawDataTable(tableInfoContainer, databaseName, machineName);
+                        }
+
+
+                        $('#databaseInfoTable tbody tr').removeClass("trOnDraw");
+                        $(this).parent().addClass("trOnDraw");                
+                 });
+                    
+                container.fadeIn();
+            }            
+        } 
+
+        function drawDataTable(container, databaseName, machineName){
+                $("#databaseInfoContainer").hide();
+                addDataTableSkeleton(container);
+                $("#tableInfoTable").dataTable( {
+                    "ajax": {
+                        "url": "{% url 'mycitsm.views.getDbCapacityData' %}",
+                        "type": "POST",
+                        "data": {"databaseName":databaseName,"machineName":machineName},
+                        "dataType":"json",
+                    },
+                    
+                    "columnDefs": [
+                        { 
+                            className: "machineName", 
+                            "targets": [0] 
+                        },
+
+                        { 
+                            className: "databaseName", 
+                            "targets": [1] 
+
+                        },
+
+                        { 
+                            className: "clickableData databaseSize", 
+                            "targets": [2],
+                            "render":  function ( data, type, full, meta ) {
+                                          return '<a href="javascript:void(0)">' + data +'</a>';
+                                        },
+                        },
+
+                        { 
+                            className: "tableName",
+                            "targets": [4],
+                        },
+
+                        { 
+                            className: "dataClear",
+                            "targets": [5],
+                            "render":  function ( data, type, full, meta ) {
+                                          return '<a href="javascript:void(0)">' + data +'</a>';
+                                        }, 
+                        },
+
+                        { 
+                            className: "clickableData rowCount", 
+                            "targets": [6],
+                            "render":  function ( data, type, full, meta ) {
+                                          return '<a href="javascript: void(0)">' + data +'</a>';
+                                        },
+                        },
+
+                        { 
+                            className: "clickableData reservedKb", 
+                            "targets": [8],
+                            "render":  function ( data, type, full, meta ) {
+                                          return '<a href="javascript: void(0)">' + data +'</a>';
+                                        },
+                        },
+                      ],
+
+                    "lengthMenu": [20, 50, 100],
+                    //默认按照tableRowCount排序
+                    "order": [[ 7, "desc" ]],   
+                    "dom": '<fl<"toolbarGoBack"><"toolbarDataDate"><t>ip>',
+                });
+                
+                $("div.dataTables_wrapper div.dataTables_filter ").css({"float":"left","margin-right":"10px"});
+                $("div.dataTables_wrapper div.dataTables_length ").css({"float":"right","margin-left":"10px"});
+
+                $("div.dataTables_wrapper div.toolbarGoBack").css({"float":"left"});
+                  
+                $("div.dataTables_wrapper div.toolbarGoBack").html('<button type="button" onclick="backToDatabaseInfoTable()">Go Back!</button>');             
+                $("div.dataTables_wrapper div.toolbarDataDate").css({"float":"right"});
+                $("div.dataTables_wrapper div.toolbarDataDate").html('<label>DataDate:<input disabled="disabled" ></label>');
+        
+                $.post("{% url 'mycitsm.views.getDbCapacityDataDate' %}", {              
+                    },
+                    function(result){
+                        var dataDate = result.dataDate;                                          
+                        $("div.dataTables_wrapper div.toolbarDataDate input").val(dataDate);
+                    },
+                    "json"
+                );
+                
+                $('#tableInfoTable tbody').on('click', 'td', function(){
+                  
+                    var machineName = $(this).parent().find($(".machineName")).text();
+                    var databaseName = $(this).parent().find($(".databaseName")).text();
+                    var tableName = $(this).parent().find($(".tableName")).text();
+                    
+                    if ($(this).hasClass("databaseSize")){
+                        showImg($("#imgContainer"));
+
+                        var titleText = 'Database Size Profile';
+                        var subtitleText = 'Machine:' + machineName +' Database:' + databaseName;
+                        var yAisTitleText = "Database Size";
+                        var series = {
+                            name: 'Database Size(kb)',
+                            color: 'rgb(124,181,236)',
+                            type:'column',                   
+                            data: [],
+                            tooltip: {
+                                valueSuffix: 'kb',
+                            },
+                        };
+
+                        $.post("{% url 'mycitsm.views.getSpecDbCapacityData' %}", {
+                                'machineName':machineName, 
+                                'databaseName':databaseName,
+                                'tableName': tableName, 
+                                'category': 'databaseSize',                
+                            },
+                            function(result){
+                                series.data = result.databaseSizeData;                                                 
+                                drawImg($("#imgContainer"), 
+                                            titleText, 
+                                            subtitleText,   
+                                            yAisTitleText,
+                                            series);                
+                                      
+                            },
+                            "json"
+                        );
+
+                    }
+
+                    else if ($(this).hasClass("rowCount")){
+                        showImg($("#imgContainer"));
+
+                        var titleText = 'Table Row Count Profile';
+                        var subtitleText = 'Machine:' + machineName +' Database:' + databaseName + ' Table:' + tableName;
+                        var yAisTitleText = "Table Row";
+                        var series = {
+                            name: 'Table Row',
+                            color: 'rgb(247,163,92)',
+                            type:'column',                   
+                            data: [],
+                        };
+
+                        $.post("{% url 'mycitsm.views.getSpecDbCapacityData' %}", {
+                                'machineName':machineName, 
+                                'databaseName':databaseName,
+                                'tableName': tableName, 
+                                'category': 'rowCount',                
+                            },
+                            function(result){
+                                series.data = result.rowCountData;                                                 
+                                drawImg($("#imgContainer"), 
+                                            titleText, 
+                                            subtitleText,   
+                                            yAisTitleText,
+                                            series);
+                            },
+                            "json"
+                        );
+                    }
+
+                    else if ($(this).hasClass("reservedKb")){
+                        showImg($("#imgContainer"));
+
+                        var titleText = 'Table Reserved Size Profile';
+                        var subtitleText = 'Machine:' + machineName +' Database:' + databaseName + ' Table:' + tableName;
+                        var yAisTitleText = "Table Reserved Size(kb)";
+                        var series = {
+                            name: 'Table Reserved Size',
+                            color: 'rgb(144,237,125)',
+                            type:'column',                   
+                            data: [],
+                            tooltip: {
+                                valueSuffix: 'kb',
+                            },
+                        };
+
+                        $.post("{% url 'mycitsm.views.getSpecDbCapacityData' %}", {
+                                'machineName':machineName, 
+                                'databaseName':databaseName,
+                                'tableName': tableName, 
+                                'category': 'reservedKb',                
+                            },
+                            function(result){
+                                series.data = result.reservedKbData;                                                 
+                                drawImg($("#imgContainer"), 
+                                            titleText, 
+                                            subtitleText,   
+                                            yAisTitleText,
+                                            series);
+                            },
+                            "json"
+                        );
+                    }
+
+                    else if ($(this).hasClass("dataClear")){
+                        var mainTableAutoDataClearConfForm = $("#autoDataClearConfFormContainer form#mainTableAutoDataClearConfForm");
+
+                        getDataclear(databaseName, tableName);
+
+                        $("#autoDataClearConfFormContainer").dialog({
+                              autoOpen:false,
+                              resizable: false,
+                              modal: true,
+                              width:880,
+                              height:550,
+                              show:{effect:"fade",duration:300},
+                              hide:{effect:"fade",duration:300},
+                              title:"查看/配置数据库自动清理",
+                              buttons: {
+                                Close: function() {
+                                  $("#autoDataClearConfFormContainer").dialog( "close" );
+                                }
+                              },
+                              close: function() {
+                                mainTableAutoDataClearConfForm[ 0 ].reset();
+                                $("p.validateTips").empty();
+                                mainTableAutoDataClearConfForm.find("#columnName").empty();
+                                mainTableAutoDataClearConfForm.find("#joinKey").empty();
+                                mainTableAutoDataClearConfForm.find("#columnName").append("<option value=''> -- </option>");
+                                mainTableAutoDataClearConfForm.find("#joinKey").append("<option value=''> -- </option>");
+                                mainTableAutoDataClearConfForm.find("input").removeClass( "ui-state-error" );
+                                mainTableAutoDataClearConfForm.find("select").removeClass( "ui-state-error" );
+                              }
+                              
+                            });
+
+                        $("#autoDataClearConfFormContainer").dialog("open");
+
+                    }
+
+                    $('#tableInfoTable tbody tr').removeClass("trOnDraw");
+                    $(this).parent().addClass("trOnDraw");
+
+                
+             });
+                
+                container.fadeIn();
+            }            
+
+        $(document).ready(function(){           
+        });
+
+    </script>
+    
+{% endblock %}
+
+{% block content %}
+
+<div class="module">
+<div id="toolbar">
+<form action="" method="POST"> 
+
+    <label>主机名:</label>  
+    <select id="machineName" name="machineName" multiple="multiple">
+        {% for item in machineNameList %}
+            <option value="{{ item.machineName }}">{{item.machineName}}</option>
+        {% endfor %}
+    </select> 
+          
+    <script type="text/javascript">
+        $("select#machineName").multiselect({
+                 noneSelectedText: "请选择",
+                 minWidth:'390',
+             }).multiselectfilter({
+      
+             });
+
+            $(".ui-multiselect-header ul.ui-helper-reset li").css({"list-style-type":"none"});
+
+            $("#toolbar button").css({
+                "position":"relative",
+                "top":"2px",
+                "background-color":"#fff",
+                "background-image":"url()"
+            });
+    </script>
+    
+    <input type="button" value="按主机名查询" onclick="drawDBDataTable($('#databaseInfoContainer'),'HOST')"/>
+
+    
+    <label>数据库:</label>  
+    <select id="databaseName" name="databaseName" multiple="multiple">
+        {% for item in databaseNameList %}
+            <option value="{{ item.databaseName }}" >{{item.databaseName}}</option>
+        {% endfor %}
+    </select> 
+          
+    <script type="text/javascript">
+        $("select#databaseName").multiselect({
+                 noneSelectedText: "请选择",
+                 minWidth:'390',
+             }).multiselectfilter({
+      
+             });
+
+            $(".ui-multiselect-header ul.ui-helper-reset li").css({"list-style-type":"none"});
+
+            $("#toolbar button").css({
+                "position":"relative",
+                "top":"2px",
+                "background-color":"#fff",
+                "background-image":"url()"
+            });
+    </script>
+    
+    <input type="button" value="按数据库查询" onclick="drawDBDataTable($('#databaseInfoContainer'),'DB')"/>
+
+  
+    <div class="hostDBValidateTips"></div>
+   
+
+</form>
+</div>
+</div>
+
+
+<div id="errorContainer" title="参数错误" style="display:none">
+        <div>
+        <p><span class="ui-icon ui-icon-alert"></span>请选择数据库</p>
+        </div>
+</div>
+
+
+<div id="progressbarDialog" style="display: none">
+<div id="progressbar">
+    <div class="progress-label">Loading...</div>
+</div>
+</div>
+
+
+<div id="imgContainer">
+</div>
+
+
+<div id="databaseInfoContainer">
+</div>
+
+<div id="tableInfoContainer">
+</div>
+
+<div id="autoDataClearConfFormContainer" style="display: none">
+<div id="mainTableAutoDataClearConfFormContainer">
+  <h1></h1>
+  <hr/>
+ 
+  <form id="mainTableAutoDataClearConfForm">
+     <input type="hidden" name="hasAutoClearSetting" id="hasAutoClearSetting" value="" class="text ui-widget-content ui-corner-all">
+    <fieldset> 
+
+
+      <table> 
+      <tbody>
+       <input type="hidden" name="ID" id="ID" value="" class="text ui-widget-content ui-corner-all">
+
+
+      <tr>
+        <td>
+            <label for="DNS">域名：</label>
+        </td>
+        <td>
+            <select name="DNS" id="DNS" class="text ui-widget-content ui-corner-all" onchange="rebuildColumnAndTypeSelect()" >
+
+            </select>
+        </td>
+      </tr>
+
+      <tr>
+        <td>
+            <label for="port">端口：</label>
+        </td>
+        <td>
+              <select name="port" id="port" class="text ui-widget-content ui-corner-all" onchange="rebuildColumnAndTypeSelect()">
+                <option value="55944" selected="selected">55944</option>
+                <option value="55111" >55111</option>
+                <option value="55444" >55444</option>
+                <option value="55777" >55777</option>
+                <option value="28747">28747</option>
+              </select>
+        </td>
+      </tr>
+
+
+      <tr>
+            <td>
+              <label for="DBName">库名：</label>
+            </td>
+            <td>  
+              <input type="text" name="DBName" id="DBName" value="" class="text ui-widget-content ui-corner-all" readonly="readonly">
+            </td>
+      </tr>
+
+      <tr>
+            <td>
+              <label for="tableName">表名：</label>
+            </td>
+            <td>
+              <input type="text" name="tableName" id="tableName" value="" class="text ui-widget-content ui-corner-all" readonly="readonly">
+            </td>
+      </tr>
+
+      
+       <tr>
+            <td>
+              <label for="type">表类型：</label>
+            </td>
+            <td>
+              <select name="type" id="type" class="text ui-widget-content ui-corner-all" disabled="disabled" onchange="setDelType(this)">
+                <option value="1">1-分区表</option>
+                <option value="2" selected="selected">2-普通表</option>
+              </select>
+            </td>
+      </tr>
+
+      <tr>
+            <td>
+              <label for="prioritySlider">优先级:<span></span></label>
+            </td>
+            <td>
+              <div name="prioritySlider" id="prioritySlider" class="slider"></div>
+              <input type="hidden" name="priority" id="priority">
+            </td>
+      </tr>
+
+      <script type="text/javascript">
+         $( "#prioritySlider" ).slider({
+          range: "min",
+          value: 1,
+          min: 1,
+          max: 1000,
+          slide: function( event, ui ) {
+            $("#priority").val(ui.value );
+            $("label[for=prioritySlider] span").text(ui.value );
+          }
+        });
+        
+        $("#priority").val($("#prioritySlider").slider("value"));
+        $("label[for=prioritySlider] span").text($("#prioritySlider").slider("value"));
+      </script>
+
+      <tr>
+            <td>
+              <label for="columnName">时间判断字段：</label>
+            </td>
+            <td>
+              <select name="columnName" id="columnName" class="text ui-widget-content ui-corner-all" onchange="setTimeType(this)">
+              </select> 
+            </td>
+      </tr>
+
+      <tr>
+            <td>
+              <label for="timeStepType">时间字段类型：</label>
+            </td>
+            <td>  
+              <select name="timeStepType" id="timeStepType" class="text ui-widget-content ui-corner-all" disabled="disabled">
+                <option value="D">DATE</option>
+                <option value="I">INT</option>
+              </select>
+            </td>
+      </tr>
+
+      <tr>
+            <td>
+              <label for="timeUnit">时间字段单位：</label>
+            </td> 
+            <td> 
+              <select name="timeUnit" id="timeUnit" class="text ui-widget-content ui-corner-all">
+                <option value="S" selected="selected">SECOND</option>
+                <option value="M">MILLSECOND</option>
+              </select>
+            </td>
+      </tr>
+
+      <tr>
+            <td>
+              <label for="joinKey" title="用于主附表依赖清理">附表关联字段：</label>
+            </td>
+            <td>
+               <select name="joinKey" id="joinKey"  class="text ui-widget-content ui-corner-all" title="用于主附表依赖清理">
+              </select>    
+            </td>
+      </tr>
+
+      <tr>
+            <td>
+              <label for="keepDaysSlider">数据保留天数:<span></span></label>
+            </td>
+            <td>
+              <div name="keepDaysSlider" id="keepDaysSlider" class="slider"></div>
+              <input type="hidden" name="keepDays" id="keepDays">
+            </td>
+      </tr>
+   
+      <script type="text/javascript">
+         $( "#keepDaysSlider" ).slider({
+          range: "min",
+          value: 60,
+          min: 1,
+          max: 600,
+          slide: function( event, ui ) {
+            $("#keepDays").val(ui.value );
+            $("label[for=keepDaysSlider] span").text(ui.value );
+          }
+        });
+        
+        $("#keepDays").val($("#keepDaysSlider").slider("value"));
+        $("label[for=keepDaysSlider] span").text($("#keepDaysSlider").slider("value"));
+      </script>
+
+      
+      <tr>  
+            <td>
+              <label for="delTimeStep">删除时间步长：</label>
+            </td>
+            <td> 
+              <select name="delTimeStep" id="delTimeStep" class="text ui-widget-content ui-corner-all">
+                <option value="1800">1800s</option>
+                <option value="3600" selected="selected">3600s</option>
+                <option value="7200">7200s</option>
+              </select>
+            </td>
+      </tr>
+
+      
+    
+      <tr>
+            <td>
+              <label for="delRowStep">删除行数步长：</label>
+            </td>
+            <td>
+              <select name="delRowStep" id="delRowStep" class="text ui-widget-content ui-corner-all">
+                <option value="1000">1000</option>
+                <option value="5000" selected="selected">5000</option>
+                <option value="10000">10000</option>
+                <option value="20000">20000</option>
+              </select>
+            </td>
+      </tr>
+    
+      <tr>
+            <td>
+              <label for="partitionUnit">分区时间维度：</label>
+            </td>
+            <td>
+              <select name="partitionUnit" id="partitionUnit" class="text ui-widget-content ui-corner-all">
+                <option value="M" selected="selected">MONTH</option>
+                <option value="W">WEEK</option>
+                <option value="D">DAY</option>
+              </select>
+            </td>
+      </tr>
+
+      <tr>  
+            <td>
+              <label for="partitionPerUnit">分区计算方法：</label>
+            </td>
+            <td>
+              <select name="partitionPerUnit" id="partitionPerUnit" class="text ui-widget-content ui-corner-all" disabled="disabled">
+                <option value="D" selected="selected">TO_DAYS</option>
+                <option value="S">UNIX_TIMESTAMP</option>
+              </select>
+            </td>   
+      </tr>
+
+      <tr>
+            <td>
+              <label for="partitionKeepCountSlider">保留分区数量:<span></span></label>
+            </td>
+            <td>
+              <div name="partitionKeepCountSlider" id="partitionKeepCountSlider" class="slider"></div>
+              <input type="hidden" name="partitionKeepCount" id="partitionKeepCount">
+            </td>
+      </tr>
+     
+      <script type="text/javascript">
+         $( "#partitionKeepCountSlider" ).slider({
+          range: "min",
+          value: 30,
+          min: 0,
+          max: 300,
+          slide: function( event, ui ) {
+            $("#partitionKeepCount").val(ui.value );
+            $("label[for=partitionKeepCountSlider] span").text(ui.value );
+          }
+        });
+        
+        $("#partitionKeepCount").val($("#partitionKeepCountSlider").slider("value"));
+        $("label[for=partitionKeepCountSlider] span").text($("#partitionKeepCountSlider").slider("value"));
+      </script>
+
+
+      <tr>  
+            <td>
+              <label for="partitionPreCountSlider">预分分区数量:<span></span></label>
+            </td>
+            <td>
+              <div name="partitionPreCountSlider" id="partitionPreCountSlider" class="slider"></div>
+              <input type="hidden" name="partitionPreCount" id="partitionPreCount">
+            </td>
+      </tr>
+     
+      <script type="text/javascript">
+         $( "#partitionPreCountSlider" ).slider({
+          range: "min",
+          value: 10,
+          min: 3,
+          max: 30,
+          slide: function( event, ui ) {
+            $("#partitionPreCount").val(ui.value );
+            $("label[for=partitionPreCountSlider] span").text(ui.value );
+          }
+        });
+        
+        $("#partitionPreCount").val($("#partitionPreCountSlider").slider("value"));
+        $("label[for=partitionPreCountSlider] span").text($("#partitionPreCountSlider").slider("value"));
+      </script>
+    
+      <tr>
+            <td>
+              <label for="clearWindowStart">清理开始窗口：</label>
+            </td>
+            <td>
+              <input type="text" name="clearWindowStart" id="clearWindowStart" value="" class="text ui-widget-content ui-corner-all">
+            </td>
+      </tr>
+
+      <tr>
+            <td>
+              <label for="clearWindowEnd">清理结束窗口：</label>
+            </td>
+            <td>
+              <input type="text" name="clearWindowEnd" id="clearWindowEnd" value="" class="text ui-widget-content ui-corner-all">
+            </td>
+      </tr>
+
+      <script type="text/javascript">
+                $('#clearWindowStart').timepicker({
+                    timeFormat: "HH:mm:ss",
+                });
+
+                $('#clearWindowEnd').timepicker({
+                    timeFormat: "HH:mm:ss",
+                });
+      </script>
+
+      <tr>
+            <td>
+              <label for="batchID">清理执行批次：</label>
+            </td>
+            <td>
+              <select name="batchID" id="batchID" class="text ui-widget-content ui-corner-all">
+                <option value="0" selected="selected">0</option>
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+                <option value="6">6</option>
+                <option value="7">7</option>
+                <option value="8">8</option>
+                <option value="9">9</option>
+              </select>
+            </td>
+      </tr>
+
+      <tr>
+            <td>
+              <label for="runSleep">运行时间间隔：</label>
+            </td>
+            <td>
+              <select name="runSleep" id="runSleep" class="text ui-widget-content ui-corner-all">
+                <option value="1" selected="selected">1s</option>
+                <option value="2">2s</option>
+                <option value="3">3s</option>
+              </select>
+            </td>
+      </tr>
+
+      <tr>
+            <td>
+              <label for="status">当前运行状态：</label>
+            </td>
+            <td>  
+              <select name="status" id="status" class="text ui-widget-content ui-corner-all">
+                <option value="0" selected="selected">0-待处理</option>
+                <option value="1">1-处理中</option>
+                <option value="2">2-不处理</option>
+              </select>
+            </td>
+      </tr>
+
+      <tr>
+            <td>
+              <label for="lastSuccessTime">清理完成时间：</label>
+            </td>
+            <td>
+              <input type="text" name="lastSuccessTime" id="lastSuccessTime" value="" class="text ui-widget-content ui-corner-all" readonly="readonly">
+            </td>
+      </tr>
+
+      <tr>
+            <td>
+              <label for="minTime">最小数据时间：</label>
+            </td>
+            <td>
+              <input type="text" name="minTime" id="minTime" value="" class="text ui-widget-content ui-corner-all" readonly="readonly">
+            </td>
+      </tr>
+ 
+      <tr>
+        <!-- Allow form submission with keyboard without duplicating the dialog button -->
+        <td></td>
+        <td>
+        <p class="validateTips"></p>
+        <button type="button" class="submit" onclick="setAutoDataClear()">插入主表配置</button>
+        <button type="button" class="delete" onclick="delAutoDataClear()">删除主表配置</button>
+        <button type="button" class="chkSet" onclick="getAttachAutoDataClear()">查看附表配置</button>
+        </td>
+      </tr>
+      </tbody>
+    </table>
+
+
+
+    </fieldset>
+  </form>
+</div>
+
+
+<div id="attachTableAutoDataClearConfFormContainer">
+  <h1></h1>
+  <hr/>
+ 
+  <form id="attachTableAutoDataClearConfForm">
+    <input type="hidden" name="hasAttachAutoClearSetting" id="hasAttachAutoClearSetting" value="" class="text ui-widget-content ui-corner-all">
+    <fieldset>
+        
+    </fieldset>
+   </form>
+</div>
+
+</div>
+
+<div id="dialog-confirm" title="操作确认" style="display:none">
+    <p>
+        <span class="ui-icon ui-icon-alert" style="float:left; margin:0 7px 20px 0;"></span>
+        确定要执行该操作？
+    </p>
+</div>
+<script type="text/javascript">
+var dialogConfirm = $("#dialog-confirm" ).dialog({
+          autoOpen: false,
+          resizable: false,
+          width:520,
+          modal: true,
+        });
+</script>
+
+{% endblock %}

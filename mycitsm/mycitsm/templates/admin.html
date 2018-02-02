@@ -1,0 +1,47 @@
+{% extends "base_site.html" %}
+{% load i18n static %}
+{% load url from future %}
+
+{% block extrastyle %}{{ block.super }}<link rel="stylesheet" type="text/css" href="{% static "css/intro.css" %}" />{% endblock %}
+
+{% block content %}
+<div id="content">
+
+<div class="introlist refpic">
+<table width="100%">
+<caption align="center">Guide</caption>
+<tr>
+    <td><a href="{% url 'mycitsm.views.showuser' %}"><img src="/static/img/list_menu_user.png" /></a></td>
+    <td>
+        <ul>
+            <li>查看用户基本信息</li>
+            <li>查看用户所属组</li>
+            <li>修改用户所属自定义组</li>
+        </ul>
+    </td>
+</tr>
+<tr>
+    <td><a href="{% url 'mycitsm.views.showgroup' %}"><img src="/static/img/list_menu_group.png" /></a></td>
+    <td>
+        <ul>
+            <li>查看所有组的成员</li>
+            <li>新增删除自定义组</li>
+            <li>修改自定义组的成员</li>
+        </ul>
+    </td>
+</tr>
+<tr>
+    <td><a href="{% url 'mycitsm.views.showperm' %}"><img src="/static/img/list_menu_perm.png" /></a></td>
+    <td>
+        <ul>
+            <li>查看组的权限</li>
+            <li>修改组权限</li>
+        </ul>
+    </td>
+</tr>
+</table>
+</div>
+
+</div>
+
+{% endblock %}

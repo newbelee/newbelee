@@ -1,0 +1,287 @@
+{% extends "base_site.html" %}
+{% load i18n static %}
+{% load url from future %}
+
+
+{% block extrastyle %}
+    {{ block.super }}
+    <link rel="stylesheet" type="text/css" href="{% static "sqlreview/css/forms.css" %}" />
+    <link rel="stylesheet" type="text/css" href="{% static "sqlreview/css/jquery-ui-1.10.4.custom.css" %}" />
+    <link rel="stylesheet" type="text/css" href="{% static "sqlreview/codemirror/lib/codemirror.css" %}" />
+    <link rel="stylesheet" type="text/css" href="{% static "sqlreview/codemirror/addon/hint/show-hint.css" %}" />
+    <link rel="stylesheet" type="text/css" href="{% static "sqlreview/codemirror/addon/dialog/dialog.css" %}" />
+    <link rel="stylesheet" type="text/css" href="{% static "sqlreview/codemirror/theme/eclipse.css" %}" />
+    <link rel="stylesheet" type="text/css" href="{% static "sqlreview/codemirror/theme/neat.css" %}" />
+
+    <style>
+        .bubble-box{ 
+        background:#EEE; 
+        width:2000px; 
+        margin-bottom:30px; 
+        }
+        .mybox{ 
+        background:#EEE;
+        width:1200px;
+        margin-bottom:30px;
+        }
+
+        .bubble-box .wrap{ 
+        background:#EEE; 
+        /* 修正IE6 */ 
+        _position:relative; 
+        _z-index:10; 
+        } 
+        /* arrow-effect */ 
+        .arrow-left{ border-left:20px solid #FFF; border-top:20px solid #EEE; margin-top:20px;} 
+        .arrow-right{ border-right:20px solid #FFF; border-top:20px solid #EEE;} 
+        .arrow-top{ border-left:20px solid #EEE; border-top:20px solid #FFF; margin-left:20px;} 
+        .arrow-bottom{ border-left:20px solid #EEE; border-bottom:20px solid #FFF; margin-left:20px;} 
+        .arrow-left .wrap, 
+        .arrow-right .wrap{ 
+        width:180px; 
+        padding:12px 10px 12px 10px; 
+        margin-top:-40px; 
+        } 
+        .arrow-top, .arrow-bottom{ width:140px;} 
+        .arrow-top .wrap, 
+        .arrow-bottom .wrap{ 
+        width:180px; 
+        padding:12px 10px 12px 10px; 
+        margin-left:-40px; 
+        }
+        .CodeMirror{
+          height: 200px !important;
+        }
+      .CodeMirror {border: 1px solid #ddd;margin: 2px}
+      .CodeMirror pre.CodeMirror-placeholder { color: #999; }
+      input,span,th,td,tr,li  {font-size:13px;}
+      table,caption,p,label {font-size:13px;}
+      .content {background-color:#EDF3FE}
+
+      #formContainer {
+        padding: 2px;
+        border: 1px solid #ddd;
+      }
+
+      #formContainer table {
+       width: 100%;
+      }
+
+      #formContainer p label {
+       margin-left: 3px;
+      }
+
+      .sql {
+            word-break:break-all;
+      }
+      .aligned label{
+        width: 18em !important;
+      }
+      .dataTables_wrapper .dataTables_filter input{
+        border: 1px solid #ccc !important;
+      }
+
+    </style>
+    
+    <script src="{% static "sqlreview/codemirror/lib/codemirror.js" %}"></script>
+    <script src="{% static "sqlreview/codemirror/mode/sql/sql.js" %}"></script>
+    <script src="{% static "sqlreview/codemirror/mode/javascript/javascript.js" %}"></script>
+    <script src="{% static "sqlreview/codemirror/addon/selection/active-line.js" %}"></script>
+    <script src="{% static "sqlreview/codemirror/addon/hint/show-hint.js" %}"></script>
+    <script src="{% static "sqlreview/codemirror/addon/hint/anyword-hint.js" %}"></script>
+    <script src="{% static "sqlreview/codemirror/addon/edit/closebrackets.js" %}"></script>
+    <script src="{% static "sqlreview/codemirror/addon/display/placeholder.js" %}"></script>
+    <script src="{% static "sqlreview/codemirror/addon/dialog/dialog.js" %}"></script>
+    <script src="{% static "sqlreview/codemirror/addon/search/searchcursor.js" %}"></script>
+    <script src="{% static "sqlreview/codemirror/addon/search/search.js" %}"></script>
+    <script language="javascript" src="{% static "js/jquery-1.12.3.js" %}"></script>
+
+    <script src="{% static "sqlreview/js/jquery-ui.js" %}"></script>
+
+    <link rel="stylesheet" type="text/css" href="{% static "css/chosen.css" %}" />
+    <script language="javascript" src="{% static "js/chosen.jquery.js" %}"></script>
+    <script language="javascript" src="{% static "js/chosen.proto.js" %}"></script>
+
+    <link rel="stylesheet" type="text/css" href="{% static "css/jquery.dataTables.min.css" %}" />
+    <link rel="stylesheet" type="text/css" href="{% static "css/buttons.dataTables.min.css" %}" />
+
+    <script language="javascript" src="/static/js/jquery.dataTables.min.js"></script>
+
+    <script language="javascript" src="/static/js/jquery.dataTables.yadcf.js"></script>
+    
+    <script language="javascript" src="{% static "js/dataTables.buttons.min.js" %}"></script>
+    <script language="javascript" src="{% static "js/jszip.min.js" %}"></script>
+    <script language="javascript" src="{% static "js/pdfmake.min.js" %}"></script>
+    <script language="javascript" src="{% static "js/vfs_fonts.js" %}"></script>
+    <script language="javascript" src="{% static "js/buttons.html5.min.js" %}"></script>
+
+    <script type="text/javascript">
+        
+        function waitServerResponse(){
+            if(mySqlEditor.getValue() != '')
+            {
+                $('#myModal').dialog("open");
+            };
+
+        };                    
+
+        $(document).ready(function() {
+            $(".CodeMirror textarea").css({"word-break":"break-all"});            
+            $("#myModal").dialog({
+                autoOpen: false,
+                resizable: false,
+                width: 300,
+                height: 80,
+                modal: true,
+                open: function (event, ui) {
+                    $(this).closest('.ui-dialog').find('.ui-dialog-titlebar').hide();
+                }
+            });
+            $("#dataResult").DataTable({
+              dom: 'Bfrtip',
+              buttons: [
+                  'copyHtml5',
+                  'excelHtml5',
+                  'csvHtml5'
+              ]              
+            });
+            $("#dbname").chosen();
+        });    
+    </script>
+{% endblock %}
+
+
+
+{% block content %}
+
+<div id="formContainer">
+        <form action="" method="post" onsubmit="waitServerResponse()">
+            <input style="visibility:hidden;height:0px" id = "mid" name ="mid" value="{{ mid }}"></input>
+            <table>
+            <tr>
+                <th width="115px"><p>请选择数据库:</p></th>
+                <td>
+                    <select id="dbname"  name="dbname""
+                    {% if action == "exec" %} disabled="disabled" {% endif %}
+                    style="width:200px;" class="chosen-select-no-results">
+                    {% for item in dblist %}
+                        <option value="{{ item.Upload_DBName }}" {% ifequal item.Upload_DBName|lower databaseName %} selected="selected" {% endifequal %}>{{item.Upload_DBName}}</option>
+                    {% endfor  %}
+                    </select>
+                    <span id="databaseNotExistInReviewHint" style='color:red;'></span>
+                </td>
+
+                {% if is_superuser %}                
+                <th width="115px"><p>状态:</p></th>
+                <td>
+                    <select id="status"  name="status"" style="width:200px;">
+                    {% for item in statuslist %}
+                        <option value="{{ item.0 }}" {% ifequal item.0|lower status %} selected="selected" {% endifequal %}>{{item.1}}</option>
+                    {% endfor  %}
+                    </select>
+                    <span id="databaseNotExistInReviewHint" style='color:red;'></span>
+                </td>                
+                {% endif %}                
+
+            </tr>
+            </table>
+           
+           {{ form.as_p}}
+
+            <div class="submit-row">
+                <span style="color:red;">(建议根据主键操作, update / delete 扫描数据超过 1000 会被禁止操作)!!</span>
+                {% if action == "edit" or action == "add" %}                
+                <input type="button" id="resetButton" value="重置内容" onclick="javascript:mySqlEditor.setValue('')" />
+                {% endif %}
+                <input type="submit" id="chksql" name="chksql" value="检查 sql "/>
+                {% if action == "edit" or action == "add" %}
+                <input type="submit" id="checksqlButton" name="{{ action }}" {% if action == "edit" and status != "0" %} disabled="disabled" {% endif %} value="{{ actionname }}"  class="default"/>
+                {% endif %}
+                {% if action == "exec" and status == "1" %}
+                <input type="submit" id="exec" name="exec"  value="执  行"  class="default"/>
+                {% endif %}
+
+            </div>
+        </form>
+</div>
+
+    
+    <script type="text/javascript">
+        CodeMirror.commands.autocomplete = function(cm) {
+            CodeMirror.showHint(cm, CodeMirror.hint.anyword);
+         }
+        var mySqlEditor = CodeMirror.fromTextArea(document.getElementById('id_sql'), {
+            mode: "text/x-mysql",
+            autoCloseBrackets: true,
+            indentWithTabs: true,
+            smartIndent: true,
+            styleActiveLine: true,
+            lineNumbers: true,
+            lineWrapping: true,
+            matchBrackets : true,
+            autofocus: true,
+            {% if action == "exec" or status != "0" %}readOnly:true, {% endif %}
+            highlightSelectionMatches: {showToken: /\w/},
+            extraKeys: {"Ctrl-H": "autocomplete"}
+        });
+        mySqlEditor.setOption('theme','eclipse');
+    </script>
+  
+    <div id="myModal" style="display: none;position:fixed;top:58%;border: 1px solid #aaaaaa;">
+        <div style="text-align: center">
+            <h4 style="height: 40px; font-family: 微软雅黑">
+                <img src="{% static "sqlreview/img/loading.gif" %}" alt="loading" />
+                <br />正在处理，请耐心等候...</h4>
+        </div>
+    </div>  
+   <div class="error list">
+   {%if errorSqlList %}
+   <fieldset class="module aligned"> 
+        <table width="100%" >
+        <tr>
+            <th width="115px"><p>返回信息：</p></th>
+            <td>
+               <table width="100%" style="border:1px solid #ddd;">
+                    <caption>sql 检查返回信息</caption>
+                </table>
+                {%for errorSqlitem in errorSqlList %}
+                  <p style="color:red;" class="sql">{{errorSqlitem.sql}}
+                {% if errorSqlitem.warning %}
+                   <br /> {{errorSqlitem.warning }}
+                {%  endif %}
+                {% if errorSqlitem.error %}
+                   <br /> {{errorSqlitem.error }}
+                {%  endif %}
+                </p>
+                <hr>
+                {% endfor %} 
+            </td>
+        </tr>
+        </table>
+   </fieldset>
+   {% endif %}
+   </div>
+
+   {%if backinfo %}
+   <fieldset class="module aligned"> 
+        <table width="100%" >
+        <tr>
+            <th width="115px"><p>备份信息</p></th>
+            <td>
+               <table width="100%" style="border:1px solid #ddd;">
+                    <caption>sql 备份信息</caption>
+                </table>
+                {%for backinfoitem in backinfo %}
+                  <p style="color:red;" class="sql">{{backinfoitem.0}}
+                  <br /> {{backinfoitem.1 }}
+                </p>
+                <hr>
+                {% endfor %} 
+            </td>
+        </tr>
+        </table>
+   </fieldset>
+   {% endif %}
+   </div>
+
+{% endblock %}

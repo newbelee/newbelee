@@ -1,0 +1,58 @@
+{% extends "base_site.html" %}
+{% load i18n static %}
+{% load url from future %}
+
+{% block extrastyle %}{{ block.super }}<link rel="stylesheet" type="text/css" href="{% static "css/forms.css" %}" />{% endblock %}
+{% block extrahead %}
+    <script type="text/javascript" src="{% static "js/jquery.min.js" %}"></script>
+    <script>
+        function change_froze(){
+            var tvalue="";
+            var radioArry=document.getElementsByName("radio_level");
+            for(i=0;i<radioArry.length;i++){
+                if (radioArry[i].checked) {
+                tvalue=tvalue+radioArry[i].value;
+                }
+            }
+            data={"value":tvalue};
+            $.ajax({
+                type:'POST',
+                url:"{% url 'mycitsm.views.configall_change' %}",
+                data:data,
+                success:function(){
+                    alert("保存成功，已经生效")
+                    self.location="/admin/config/configall/"
+
+                }
+            });
+        }
+
+    </script>
+{% endblock %}
+
+{% block content %}
+
+
+<fieldset class="module aligned">
+    <h2>发布环境</h2>
+    <div class="form-row">
+        <label style="display:inline;float:none;">是否冻结发布：</label>
+        <input type="radio"  value="T" {% if result == "T" %}checked="True"{% endif %} id="is_froze1" name="radio_level" />
+        <label style="display:inline;float:none;">冻结</label>
+        <input type="radio"  value="F" {% if result == "F" %}checked="True"{% endif %} id="is_froze2" name="radio_level" />
+        <label style="display:inline;float:none;">不冻结</label>
+        <button onclick="change_froze()">保存</button>
+
+    </div>
+
+</fieldset>
+
+{% if has_perm %}
+<div class="submit-row">
+    <input type="submit" value="发布" class="default" name="_save" onclick="checkrepeat()"/>
+    <p class="deletelink-box"><a href="close/" class="deletelink">结束申请单</a>
+</div>
+{% endif %}
+
+
+{% endblock %}

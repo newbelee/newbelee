@@ -1,0 +1,40 @@
+.intromenu {
+    text-align:center;
+}
+
+.introlist {
+    width:50em;
+    margin:2em auto auto auto;
+}
+
+.introlist table caption {
+    font-size:36px;
+    color:#015A84;
+    font-weight:bold;
+    margin-bottom:0.5em;
+}
+
+.introlist table ul li {
+    font-size:20px;
+    color:#E97B00;
+    margin:1em auto 1em auto;
+    list-style-type:square;
+    font-weight:bold;
+}
+
+.introlist table {
+    border-color:#ddd; 
+    border-width:0;
+}
+
+.introlist table td {
+    vertical-align:middle;
+    height:13em;
+    border-width:0;
+    border-color:#ddd;
+}
+
+.refpic a:hover {
+    opacity:0.6;
+}
+

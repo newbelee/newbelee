@@ -1,0 +1,86 @@
+{% extends "base_site.html" %}
+{% load i18n static %}
+{% load url from future %}
+
+{% block extrastyle %}{{ block.super }}<link rel="stylesheet" type="text/css" href="{% static "css/table1.css" %}" />{% endblock %}
+{% block content_title %}{% if title %}<h1>{{ title }} (最近更新:{{gettime}})</h1>{% endif %}{% endblock %}
+{% block content %}
+
+
+<div class="module">
+<div id="toolbar">
+<form action="" method="get">
+    <label style="font-weight:bold;margin-left:5px;">数据库环境类型:</label>
+    <select name="envtype" style="margin-left:5px;">
+    	<option value="all" {% if envtype = "所有" %}selected="selected" {% endif %}>所有</option>
+        <option value="生产" {% if envtype = "生产" %}selected="selected" {% endif %}>生产</option>
+        <option value="托管" {% if envtype = "托管" %}selected="selected" {% endif %}>托管</option>
+        <option value="内部" {% if envtype = "内部" %}selected="selected" {% endif %}>内部</option>
+        <option value="非生产" {% if envtype = "非生产" %}selected="selected" {% endif %}>非生产</option>
+        <option value="备机" {% if envtype = "备机" %}selected="selected" {% endif %}>备机</option>
+    </select>
+    <label style="margin-left:5px;" for="searchbar"><img src="/static/img/icon_searchbox.png" alt="Search" /></label>
+    <input type="text" size="30" name="q" value="{{ keyword|default:"" }}" id="searchbar" />
+    <input type="submit" value="Search Server" />
+</form>
+</div>
+</div>
+
+
+<div class="style">
+<table width="100% border="1"">
+<thead>
+<tr>
+    <th>环境</th>
+    <th>群集名 | 应用名</th>
+    <th>主机名</th>
+    <th>服务器状态</th>
+    <th>复制状态</th>
+    <th></th>
+</tr>
+</thead>
+
+{% for row in rows %}
+<tr>
+    <td>{{row.Environment}}</td>
+    <td>{{row.AppName}}</td>
+    <td><a href="envtype={{envtype}}&host={{row.hostname}}">{{row.hostname}}</a></td>
+    <td>
+        {% if row.ServerStatus != "-" %}<a href="serverstatus/envtype={{envtype}}&host={{row.hostname}}" 
+        {% if row.ServerStatus == "Critical" %} style="color:red;" {% endif %} 
+        {% if row.ServerStatus == "Fair" %} style="color:darkorange;" {% endif %} 
+        {% if row.ServerStatus == "Good" %} style="color:green;" {% endif %}>{% endif %}{{row.ServerStatus}}{% if row.ServerStatus != "" %}</a>{% endif %}
+    </td>
+    <td>
+        {% if row.SlaveStatus != "-" %}<a href="slavestatus/envtype={{envtype}}&host={{row.hostname}}"
+        {% if row.SlaveStatus == "Critical" %} style="color:red;" {% endif %} 
+        {% if row.SlaveStatus == "Fair" %} style="color:darkorange;" {% endif %} 
+        {% if row.SlaveStatus == "Good" %} style="color:green;" {% endif %}>{% endif %}{{row.SlaveStatus}}{% if row.SlaveStatus != "" %}</a>{% endif %}
+    </td>
+</tr>
+{% endfor %}
+
+</table>
+</div>
+
+<div class="paginator">
+    <span class="step-links">
+        <a href="?envtype={{ envtype }}&q={{ keyword|default:"" }}&page=1">first&lt;&lt;</a>
+
+        {% if rows.has_previous %}
+            <a href="?envtype={{ envtype }}&q={{ keyword|default:"" }}&page={{ rows.previous_page_number }}">previous</a>
+        {% endif %}
+
+        <span class="current">
+            Page {{ rows.number }} of {{ rows.paginator.num_pages }}.
+        </span>
+
+        {% if rows.has_next %}
+            <a href="?envtype={{ envtype }}&q={{ keyword|default:"" }}&page={{ rows.next_page_number }}">next</a>
+        {% endif %}
+
+        <a href="?envtype={{ envtype }}&q={{ keyword|default:"" }}&page={{ rows.paginator.num_pages }}">&gt;&gt;last</a>
+    </span>
+</div>
+
+{% endblock %}

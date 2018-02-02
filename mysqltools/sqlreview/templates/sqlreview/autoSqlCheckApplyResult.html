@@ -1,0 +1,116 @@
+{% extends "base_site.html" %}
+{% load i18n static %}
+{% load url from future %}
+
+{% block extrastyle %}
+    {{ block.super }}
+    <link rel="stylesheet" type="text/css" href="{% static "sqlreview/css/forms.css" %}" />
+    <link rel="stylesheet" type="text/css" href="{% static "sqlreview/css/intro.css" %}" />
+    <link rel="stylesheet" type="text/css" href="{% static "sqlreview/css/table.css" %}" />
+
+    <style type="text/css">
+	    a.redLink:link, 
+		a.redLink:visited { 
+			color:red; 
+		} 
+		a.redLink:hover, 
+		a.redLink:active { 
+			color:#BB0000; 
+		}
+
+		a.greenLink:link, 
+		a.greenLink:visited { 
+			color:green; 
+		} 
+		a.greenLink:hover, 
+		a.greenLink:active { 
+			color:#00BB00; 
+		}
+	</style>
+
+{% endblock %}
+
+
+{% block content %}
+<div style="padding:0 0 10px 0;">
+    <a href="autoSqlCheck/addAutoSqlCheckApply"><button type="button" >新建SQL自动审核申请单</button></a>
+</div>
+
+<div style="color:red;">
+    <ul>
+        <li>点击审核状态查看整个申请单审核结果</li>
+    </ul>
+</div>
+
+<div class="module">
+<div id="toolbar">
+<form action="" method="get">
+	<label style="margin-left:5px;" for="searchbar"><img src="/static/img/icon_searchbox.png" alt="Search" /></label>
+	<label style="font-weight:bold;margin-left:5px;">申请单号/数据库名/SQL/申请人/审核状态:</label>
+	<input type="text" size="30" name="q" value="{{ keyword|default:""}}" id="searchbar" />
+	<input type="submit" value="查询" />
+</form>
+</div>
+ <h2 style="text-align:center;font-size:15px;">SQL自动审核申请单</h2>
+</div>
+
+<div class="style">
+	<table width="100%" border="1">
+		<thead>
+			<tr>
+				<th>申请单号</th>
+				<th>数据库</th>
+				<th>申请人</th>
+				<th>申请时间</th>
+				<th>修改时间</th>
+				<th>审核时间</th>
+				<th>审核状态</th>
+			</tr>	
+		</thead>
+
+		{% for applyItem in rows %}
+			<tr>
+				<td>{{applyItem.apply_id}}</td>
+				<td>{{applyItem.db_name}}</td>
+				<td>{{applyItem.apply_by}}</td>
+				<td>{{applyItem.apply_date|date:"Y-m-d H:i:s"}}</td>
+				<td>{{applyItem.modify_date|date:"Y-m-d H:i:s"}}</td>
+				<td>{{applyItem.check_date|date:"Y-m-d H:i:s"}}</td>
+				<td><a href="autoSqlCheck/applyId={{applyItem.apply_id}}"
+						{% ifequal  applyItem.status|lower '审核未通过'%}
+							class="redLink"
+						{%else%}
+							{% ifequal  applyItem.status|lower '审核通过'%}
+								class="greenLink"
+							{% endifequal %}
+						{% endifequal %}
+					>{{applyItem.status}}
+					</a>
+				</td>
+			</tr>
+		{% endfor %}
+	</table>
+</div>
+
+<div calss="paginator">
+	<span class="step-links">
+		<a href="?q={{ keyword|default:""}}&page=1">first&lt;&lt;</a>
+		
+		{% if rows.has_previous %}
+			<a href="?q={{ keyword|default:"" }}&page={{ rows.previous_page_number }}">previous</a>
+		{% endif %}
+
+		<span class="current">
+            Page {{ rows.number }} of {{ rows.paginator.num_pages }}.
+        </span>
+
+        {% if rows.has_next %}
+            <a href="?q={{ keyword|default:"" }}&page={{ rows.next_page_number }}">next</a>
+        {% endif %}
+
+        <a href="?q={{ keyword|default:"" }}&page={{ rows.paginator.num_pages }}">&gt;&gt;last</a>
+
+	</span>
+</div>
+
+{% endblock %}

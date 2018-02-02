@@ -1,0 +1,148 @@
+{% extends "base_site.html" %}
+{% load i18n static %}
+{% load url from future %}
+
+{% block extrastyle %}{{ block.super }}
+    <link rel="stylesheet" type="text/css" href="{% static "css/forms.css" %}"/>
+    <link rel="stylesheet" type="text/css" href="{% static "css/jquery-ui-1.10.4.custom.css" %}" />
+    <link rel="stylesheet" type="text/css" href="{% static "css/jquery-ui.css" %}" />
+    <script type="text/javascript" src="{% static "js/jquery-1.10.2.js" %}"></script>
+    <script type="text/javascript" src="{% static "js/jquery-ui.js" %}"></script>
+{% endblock %}
+{% block extrahead %}
+<script>
+$(function () {
+
+  $( "#dialog" ).dialog({
+  autoOpen: false,
+  maxHeight: 800,
+  maxWidth: 1000,
+  minHeight:300,
+  minWidth:1000,
+  modal: true,
+  show: {
+  //effect: "blind",
+  //duration: 500
+  },
+  hide: {
+  }
+  });
+
+  $( "#opener" ).click(function() { 
+  
+  $( "#dialog" ).dialog( "open" );
+  });
+
+    
+});
+
+</script>
+{% endblock %}
+
+{% block content %}
+
+<form enctype="multipart/form-data" action="" method="post" id="form">
+<fieldset class="module aligned">
+    <div class="style" style="word-break:break-all;">
+    <h2>Explain</h2>
+        <fieldset>
+        <table width="100%">
+        <thead>
+        <th align="left">SQLINFO</th>
+        </thead>
+        <tr>
+        <td align="left">{{sqlinfo}}</td>
+        </tr>
+        </table>
+        </fieldset>
+        <p></p>
+        <p></p>
+        <fieldset>
+        <table width="100%">
+        <thead>
+        <th>Id</th>
+        <th>select_type</th>
+        <th>table</th>
+        <th>type</th>
+        <th>possible_keys</th>
+        <th>key</th>
+        <th>key_len</th>
+        <th>ref</th>
+        <th>rows</th>
+        <th>Extra</th>
+        </thead>
+        {% for row in rows %}
+           <tr>
+             <td>{{row.id}}</td>
+             <td>{{row.select_type}}</td>
+             <td>{{row.table}}</td>
+             <td>{{row.type}}</td>
+             <td>{{row.possible_keys}}</td>
+             <td>{{row.key}}</td>
+             <td>{{row.key_len}}</td>
+             <td>{{row.ref}}</td>
+             <td>{{row.rows}}</td>
+             <td>{{row.Extra}}</td>
+           </tr>
+        {% endfor %}
+        </table>
+    </fieldset>
+    <p></p>
+    <p></p>
+    <h2>Show Index</h2>
+    <fieldset>
+        <table width="100%">
+        <thead>
+        <th>TABLE_NAME</th>
+        <th>NON_UNIQUE</th>
+        <th>INDEX_NAME</th>
+        <th>INDEX_COLUMN</th>
+        <th>CARDINALITY</th>
+        </thead>
+        {% for indexrow in indexrows %}
+        <tr>
+            <td>{{indexrow.TABLE_NAME}}</td>
+            <td>{{indexrow.NON_UNIQUE}}</td>
+            <td>{{indexrow.INDEX_NAME}}</td>
+            <td>{{indexrow.index_column}}</td>
+            <td>{{indexrow.CARDINALITY}}</td>
+        </tr>
+        {% endfor %}
+        </table>
+        </fieldset>
+</div>
+</fieldset>
+<div id="dialog" title="表字段详情">
+            <fieldset>
+                        <div class="style">
+                        <table width="100%">
+                        <thead>
+                        <th>TABLE_NAME</th>
+                        <th>COLUMN_NAME</th>
+                        <th>COLUMN_TYPE</th>
+                        <th>IS_NULLABLE</th>
+                        <th>COLUMN_KEY</th>
+                        <th>COLUMN_DEFAULT</th>
+                        <th>EXTRA</th>
+                        <th>COLUMN_COMMENT</th>
+                        </thead>
+                        {% for columnrow in columnrows %}
+                        <tr>
+                                <td>{{columnrow.TABLE_NAME}}</td>
+                                <td>{{columnrow.COLUMN_NAME}}</td>
+                                <td>{{columnrow.COLUMN_TYPE}}</td>
+                                <td>{{columnrow.IS_NULLABLE}}</td>
+                                <td>{{columnrow.COLUMN_KEY}}</td>
+                                <td>{{columnrow.COLUMN_DEFAULT}}</td>
+                                <td>{{columnrow.EXTRA}}</td>
+                                <td>{{columnrow.COLUMN_COMMENT}}</td>
+                        </tr>
+                        {% endfor %}
+                        </table>
+                        </div>
+                    </fieldset>
+            </div>
+<a href="#" id="opener">查看表结构</a>
+</form>
+
+{% endblock %}

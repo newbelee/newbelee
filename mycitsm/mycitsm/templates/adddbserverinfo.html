@@ -1,0 +1,82 @@
+{% extends "base_site.html" %}
+{% load i18n static %}
+{% load url from future %}
+
+{% block extrastyle %}{{ block.super }}<link rel="stylesheet" type="text/css" href="{% static "css/forms.css" %}" />{% endblock %}
+{% block extrahead %}
+    <script type="text/javascript" src="{% static "js/jquery.min.js" %}"></script>
+    <script>
+    $(document).ready(function(){
+        $(".appinfo").attr("disabled","disabled");
+    });
+    function setappinfo(nowthis){
+        $(".appinfo").attr("disabled","disabled");
+        $(nowthis).parent().find(".appinfo").removeAttr("disabled");
+    }
+    </script>
+{% endblock %}
+
+{% block content %}
+<form enctype="multipart/form-data" action="" method="post" id="user_form">
+
+<fieldset class="module aligned">
+    <h2>基本信息</h2>
+    <div class="form-row">
+        <label class="required">数据库应用类型:</label>
+        <select name="dbtype">
+            <option value="mysql">MySQL</option>
+            <option value="mongodb">MongoDB</option>
+            <option value="pgsql">PostgreSQL</option>
+            <option value="none">无应用</option>
+        </select>
+    </div>
+    <div class="form-row">
+        <label class="required">数据库环境:</label>
+        <select name="env">
+            <option value="DEV">DEV</option>
+        {% for env in envlist%}
+            <option value="{{ env.name }}">{{ env.name }}</option>
+        {% endfor %}
+        </select>
+    </div>
+    <div class="form-row">
+        <label class="required">数据库名:</label>
+        <input type="text" name="hostname" />
+    </div>
+    <div class="form-row">
+        <label class="required">IP:</label>
+        <input type="text" name="ip" />
+    </div>
+    <div class="form-row">
+        <label>端口:</label>
+        <input type="text" name="port" />
+    </div>
+    <div class="form-row">
+        <label>数据库用户名:</label>
+        <input type="text" name="backupip" />
+    </div>
+</fieldset>
+
+<fieldset class="module aligned">
+    <h2>群集|应用信息</h2>
+    <div class="form-row">
+        <input type="radio" name="appname" id="app1" onchange="setappinfo(this)"/>
+        <label style="display:inline;float:none;margin-right:2em;" for="app1" >群集名称:</label>
+        <input type="text" name="appname" style="display:inline;float:none;" class="appinfo"/>
+        <label style="display:inline;float:none;" >群集虚IP:</label>
+        <input type="text" name="vip" class="appinfo"/>
+    </div>
+    <div class="form-row">
+        <input type="radio" name="appname" id="app2" onchange="setappinfo(this)"/>
+        <label style="display:inline;float:none;margin-right:2em;" for="app2" >应用名称:</label>
+        <input type="text" name="appname" style="display:inline;float:none;" class="appinfo"/>
+        <p class="help">如不是群集，也没有域名，请输入应用信息</p>
+    </div>
+</fieldset>
+
+<div class="submit-row">
+    <input type="submit" value="提交" class="default" name="_save" />
+</div>
+
+</form>
+{% endblock %}

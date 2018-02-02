@@ -1,0 +1,70 @@
+{% extends "base_site.html" %}
+{% load i18n static %}
+{% load url from future %}
+
+{% block extrastyle %}{{ block.super }}<link rel="stylesheet" type="text/css" href="{% static "css/table.css" %}" />{% endblock %}
+
+{% block content %}
+<div class="module">
+    <div id="toolbar">
+    <form action="" method="get">
+        <label style="font-weight:bold;" for="searchbar"><img src="/static/img/icon_searchbox.png" alt="Search" />数据库:</label>
+        <input type="text" size="40" name="q" value="{{ dbname|default:"" }}" id="searchbar" />
+        <input type="submit" value="查询" />
+    </form>
+    </div>
+    <h2 style="text-align:center;font-size:15px;">业务数据库列表</h2>
+</div>
+
+<div class="style">
+<table width="100%" border="1">
+<thead>
+<tr>
+    <th>数据库</th>
+    <th>重要性</th>
+    <th>功能描述</th>
+    <th>所有者及所属组</th>
+    <th>业务部门</th>
+    <th>服务器</th>
+    <!-- <th>表信息</th> -->
+    <th>操作</th>
+</tr>
+</thead>
+
+{% for row in rows %}
+<tr>
+    <td style="width:10%"><a href="dbname={{row.upload_dbname}}">{{row.upload_dbname}}</a></td>
+    <td style="width:5%">{{row.importance}}</td>
+    <td style="width:25%">{{row.description}}</td>
+    <td style="width:5%">{{row.owner}}</td>
+    <td style="width:10%">{{row.department}}</td>
+    <td style="width:20%">{{row.host}}</td>
+    <!-- <td style="width:5%"><a href="/dbmgmt/dblist/tableView/?dbname={{row.upload_dbname}}">查看表</a></td> -->
+    <td style="width:20%"><a href="/dbmgmt/dblist/executesql?databaseName={{row.upload_dbname}}">连接数据库</a></td>
+</tr>
+{% endfor %}
+
+</table>
+</div>
+
+<div class="paginator">
+    <span class="step-links">
+        <a href="?q={{ dbname|default:"" }}&page=1">first&lt;&lt;</a>
+
+        {% if rows.has_previous %}
+            <a href="?q={{ dbname|default:"" }}&page={{ rows.previous_page_number }}">previous</a>
+        {% endif %}
+
+        <span class="current">
+            Page {{ rows.number }} of {{ rows.paginator.num_pages }}.
+        </span>
+
+        {% if rows.has_next %}
+            <a href="?q={{ dbname|default:"" }}&page={{ rows.next_page_number }}">next</a>
+        {% endif %}
+
+        <a href="?q={{ dbname|default:"" }}&page={{ rows.paginator.num_pages }}">&gt;&gt;last</a>
+    </span>
+</div>
+
+{% endblock %}

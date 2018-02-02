@@ -1,0 +1,44 @@
+.info {
+       margin: 20px;
+       line-height: 20px;
+      }
+.info ul.err{
+         font-size: 15px;
+         line-height: 20px;
+}
+
+.info ul.err li{
+          list-style-image: url(../img/icon-error.gif);
+          height: 16px;
+          line-height: 16px;
+           }
+
+.info ul.success{
+         line-height: 16px;
+}
+
+.info ul.success li{
+          list-style-image: url(../img/icon-success.gif);
+          height: 16px;
+          line-height: 16px;
+           }
+
+.info ul.failure{
+         line-height: 16px;
+}
+
+.info ul.failure li{
+          list-style-image: url(../img/icon-failure.gif);
+          height: 16px;
+          line-height: 16px;
+           }
+
+.info ul.warning{
+         line-height: 16px;
+}
+
+.info ul.warning li{
+          list-style-image: url(../img/icon-warning.gif);
+          height: 16px;
+          line-height: 16px;
+           }

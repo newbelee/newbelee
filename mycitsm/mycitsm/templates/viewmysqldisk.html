@@ -1,0 +1,77 @@
+{% extends "base_site.html" %}
+{% load i18n static %}
+{% load url from future %}
+
+{% block extrastyle %}{{ block.super }}
+    <link rel="stylesheet" type="text/css" href="{% static "css/forms.css" %}"/>
+    <link rel="stylesheet" type="text/css" href="{% static "css/table2.css" %}"/>
+    <link rel="stylesheet" type="text/css" href="{% static "css/jquery-ui-1.10.4.custom.css" %}" />
+    <link rel="stylesheet" type="text/css" href="{% static "css/jquery-ui.css" %}" />
+    <script type="text/javascript" src="{% static "js/jquery-1.10.2.js" %}"></script>
+    <script type="text/javascript" src="{% static "js/jquery-ui.js" %}"></script>
+{% endblock %}
+
+{% block extrahead %}
+<script type="text/javascript">
+$(document).ready(function(){
+          $("#myModal").hide();
+          });
+  function show_wait(){
+     $("#myModal").show();
+    }
+</script>
+{% endblock %}
+
+{% block content %}
+<fieldset class="module aligned">
+<h2>运行状态</h2>
+<div class="form-row">
+    <div id="" title="磁盘使用详情">
+       <div id="myModal" style="background-color:white;position:fixed;top:45%; left:42%;border: 1px solid #aaaaaa;Z-index: 100">
+           <div style="text-align: center">
+               <h4 style="height: 40px; font-family: 微软雅黑">
+               <img src="/static/sqlreview/img/loading.gif" alt="loading" />
+               <br />正在处理，请耐心等候...</h4>
+           </div>
+       </div> 
+    <fieldset>
+        <div class="style">
+        <table width="100%">
+        <thead>
+        <th>Mounted</th>
+        <th>Available</th>
+        <th>Capacity</th>
+        </thead> 
+        {% for disk in disk_scr %}
+           <tr>
+             <td>{{disk.0}}</td>
+             <td>{{disk.1}}</td>
+             <td>{{disk.2}}</td>   
+           </tr> 
+        {% endfor %}
+        </table>
+        </div>
+    </fieldset>
+    <p class="validateTips" style="color:CornflowerBlue;font-weight: bold;">请<span style="color:red;font-size: 20px;">谨慎</span>选择您需要清除的文件夹.</p>
+    <form enctype="multipart/form-data" action="" method="post" id="delfile_form">
+    <fieldset>
+     {% for text in text_scr %}
+        <div class="form-row">
+        <li>文件{{text.0}} 占用空间 {{text.1}} :                 <input type="checkbox" name="filename" value="{{text.0}}" /></li>
+        </div>
+     {% endfor %} 
+     {% for file in file_scr %}
+        <div class="form-row">
+        <li>文件夹{{file.0}} 占用空间 {{file.1}} :                 <input type="checkbox" name="filename" value="{{file.0}}" /></li>
+        </div>
+     {% endfor %}
+     </fieldset>
+     <div class="submit-row">
+     <input type="submit"  value="清除"  onclick="javascript:show_wait();"/>
+     </div>
+     </form>
+</div>
+
+</fieldset>
+
+{% endblock %}

@@ -1,0 +1,598 @@
+{% extends "base_site.html" %}
+{% load i18n static %}
+{% load url from future %}
+
+{% block extrastyle %}
+{{ block.super }}
+   
+    <link rel="stylesheet" type="text/css" href="{% static "css/jquery-ui.css" %}" />
+    <link rel="stylesheet" type="text/css" href="{% static "css/jquery-ui-timepicker-addon.css" %}" />
+
+    <link rel="stylesheet" type="text/css" href="{% static "css/jquery.multiselect.css" %}" />
+    <link rel="stylesheet" type="text/css" href="{% static "css/jquery.multiselect.filter.css" %}" />
+ 
+    <script type="text/javascript" src="{% static "js/jquery-1.10.2.js" %}"></script>
+    <script type="text/javascript" src="{% static "js/jquery-ui.js" %}"></script>
+    <script type="text/javascript" src="{% static "js/jquery-ui-sliderAccess.js" %}"></script>
+    <script type="text/javascript" src="{% static "js/jquery-ui-timepicker-addon.js" %}"></script>
+
+    <script type="text/javascript" src="{% static "js/highstock.js" %}"></script>
+    <script type="text/javascript" src="{% static "js/exporting.js" %}"></script>
+
+    <script type="text/javascript" src="{% static "js/jquery.quicksearch.js" %}"></script>
+
+    <script type="text/javascript" src="{% static "js/jquery.multiselect.js" %}"></script>  
+    <script type="text/javascript" src="{% static "js/jquery.multiselect.filter.js" %}"></script>
+    <link rel="stylesheet" type="text/css" href="{% static "css/slowlogmonitor.css" %}" />
+   
+    <script type="text/javascript">
+
+        Highcharts.setOptions({
+            global: {
+                timezoneOffset: -480
+            }
+        });
+
+        function drawImg(container, titleText, subtitleText, yAxis1TitleText, yAxis2TitleText, yAxis3TitleText, series1, series2, series3){
+            container.highcharts('StockChart', {
+                chart:{
+                    width:1000,
+                    height:700           
+                },   
+                rangeSelector : {
+                    selected : 5,
+                    inputEnabled:false,
+                    inputEditDateFormat: '%Y-%m-%d',
+                    buttons: [{
+                                type: 'minute',
+                                count: 60,
+                                text: '1h'
+                            }, {
+                                type: 'minute',
+                                count: 180,
+                                text: '3h'
+                            }, {
+                                type: 'minute',
+                                count: 360,
+                                text: '6h'
+                            }, {
+                                type: 'minute',
+                                count: 720,
+                                text: '12h'
+                            }, {
+                                type: 'day',
+                                count: 1,
+                                text: '1d'
+                            },{
+                                type: 'day',
+                                count: 3,
+                                text: '3d'
+                            }, {
+                                type: 'week',
+                                count: 1,
+                                text: '7d'
+                            },{
+                                type: 'week',
+                                count: 2,
+                                text: '14d'
+                            },{
+                                type: 'month',
+                                count: 1,
+                                text: '1m'
+                            },{
+                                type: 'month',
+                                count: 3,
+                                text: '3m'
+                            },{
+                                type: 'all',
+                                text: 'ALL'
+                            }]
+                },
+
+                title: {
+                    text: titleText
+                },
+
+                subtitle: {
+                    text: subtitleText
+                },
+
+                credits: {
+                        enabled: false
+                },
+
+                yAxis: [{
+                    labels: {
+                        align: 'right',
+                        x: -3
+                    },
+                    title: {
+                        text: yAxis1TitleText
+                    },
+                    offset:0,
+                    height: '40%',
+                    lineWidth: 1
+                }, {
+                    labels: {
+                        align: 'right',
+                        x: -3
+                    },
+                    title: {
+                        text: yAxis2TitleText
+                    },
+                    offset:0,
+                    top: '43%',
+                    height: '25%',
+                    lineWidth: 1
+                },{
+                    labels: {
+                        align: 'right',
+                        x: -3
+                    },
+                    title: {
+                        text: yAxis3TitleText
+                    },
+                    offset:0,
+                    top: '70%',
+                    height: '25%',
+                    lineWidth: 1
+                }],
+                
+                series: [series1,series2,series3]
+            });    
+        }      
+
+        function waitServerResponse(){
+            var progressbar = $( "#progressbar" ),
+                progressLabel = $( ".progress-label" );
+         
+            progressbar.progressbar({
+              value: false
+            });
+
+            $("#progressbarDialog").dialog({
+                autoOpen: false,
+                resizable: false,
+                width: 520,
+                modal: true,
+                open: function (event, ui) {
+                    $(this).closest('.ui-dialog').find('.ui-dialog-titlebar').hide();
+                }
+            });
+             
+            $('#progressbarDialog').dialog("open");
+        };   
+
+        var titleText = "Slow Log Profile";
+        var subtitleText = "Execution Count - Average Rows - Average Query Time";
+
+        var executionTimesYAisTitleText = "Execution Count";
+        var avgRowsYAisTitleText = "Avg Rows";
+        var avgQueryTimeYAisTitleText = "Avg Query Time";
+
+        var groupingUnits = [['minute', [1]]];
+
+        var executionTimesSeries = {
+                    name: 'Execution Count',
+                    color: 'rgb(124,181,236)',
+                    type:'column',                   
+                    data: [],
+            };
+
+        var avgRowsSeries = {
+                    name: 'Average Rows',
+                    color: 'rgb(247,163,92)',
+                    type:'column',                   
+                    data: [],
+                    yAxis: 1,
+            };
+
+        var avgQueryTimeSeries = {
+                    name: 'Average Query Time',
+                    color: 'rgb(144,237,125)',
+                    type:'column',                   
+                    data: [],
+                    yAxis: 2,
+                    tooltip: {
+                        valueDecimals: 2,
+                        valueSuffix: ' s'
+                    },
+                    dataGrouping: {
+                        approximation:'average'
+                    }
+        };
+
+        $(document).ready(function(){
+            $("#topNSlowSqlContainer").find($(".detail")).hide();
+            
+            $(".ui-icon,.slowSql").tooltip({ 
+                        position: { 
+                            my: "left bottom",
+                            at: "right top" 
+                        }
+            });
+            
+            $(".ui-icon").click(function(){
+                if ($(this).hasClass("ui-icon-carat-1-n")){
+                    $(this).removeClass("ui-icon-carat-1-n");
+                    $(this).addClass("ui-icon-carat-1-s");
+                    $(this).parent().parent().find($(".summary")).toggle();
+                    $(this).parent().parent().find($(".detail")).toggle();                
+
+                }
+                else if($(this).hasClass("ui-icon-carat-1-s")){
+                    $(this).removeClass("ui-icon-carat-1-s");
+                    $(this).addClass("ui-icon-carat-1-n");
+                    $(this).parent().parent().find($(".detail")).toggle();
+                    $(this).parent().parent().find($(".summary")).toggle();
+                }
+            });
+
+            $(".ui-icon-image").click(function(){
+                $("#topNSlowSqlContainer table tbody tr").removeClass("trOnDraw");
+                $(this).parent().parent().addClass("trOnDraw");
+
+                $("#imgContainer").dialog({
+                                      resizable: false,
+                                      modal: true,
+                                      width:1024,
+                                      height:768,
+                                      show:{effect:"fade",duration:300},
+                                      hide:{effect:"fade",duration:300},
+                                      open:function(){
+                                        $("#imgContainer").css({"width":"1024","height":"768"});
+                                        $("#imgContainer").html("<div>Loading...</div>");
+                                        $("#imgContainer div").css({"position": "relative","left": "45%","top":"45%"});
+                                      },
+                                      close: function() {
+                                        $("#imgContainer").empty();
+                                      }
+                                    });
+
+                var hostName = $(this).parent().parent().find($("input.hostName")).val();
+                var loginName = $(this).parent().parent().find($("input.loginName")).val();
+                var hashCode = $(this).parent().parent().find($("input.hashCode")).val();
+                var beginTime = "{{beginTime}}";
+                var endTime = "{{endTime}}";
+                             
+                $.post("{% url 'mycitsm.views.getSlowLogData' %}", {
+                            'hostName':hostName, 
+                            'loginName':loginName,
+                            'hashCode': hashCode,
+                            /*'beginTime':beginTime,
+                            'endTime':endTime,*/                  
+                        },
+                        function(result){
+                            executionTimesSeries.data = result.executionCountData;
+                            avgRowsSeries.data = result.avgRowsData;
+                            avgQueryTimeSeries.data = result.queryTimeAvgData;                           
+                            
+                            drawImg($("#imgContainer"), 
+                                    titleText, 
+                                    subtitleText,   
+                                    executionTimesYAisTitleText,
+                                    avgRowsYAisTitleText,  
+                                    avgQueryTimeYAisTitleText,
+                                    executionTimesSeries,
+                                    avgRowsSeries,
+                                    avgQueryTimeSeries);
+
+                                    
+                        },
+                        "json"
+                );           
+               
+            });
+            
+            
+            $("#topNCountsSearch").quicksearch('#topNCounts table.content tbody tr',{'delay': 10, });
+            $("#topNAvgRowsSearch").quicksearch('#topNAvgRows table.content tbody tr',{'delay': 10});
+            $("#topNqueryTimeAvgSearch").quicksearch('#topNqueryTimeAvg table.content tbody tr',{'delay': 10});
+
+            $("#topNCounts").fadeIn(1000);
+            $("#topNAvgRows").fadeIn(1250);
+            $("#topNqueryTimeAvg").fadeIn(1500); 
+                   
+            
+        });
+
+    </script>
+    
+{% endblock %}
+
+
+{% block content %}
+
+<div class="module">
+<div id="toolbar">
+<form action="" method="GET" onsubmit="waitServerResponse()"> 
+    
+    <label >最大显示数量:</label>
+    <select id="topN" name="topN" class="ui-corner-all">
+            <option value="30" {% ifequal topN|lower "30" %}selected="selected" {% endifequal %}>30</option>
+            <option value="50" {% ifequal topN|lower "50" %}selected="selected" {% endifequal %}>50</option>
+            <option value="100" {% ifequal topN|lower "100" %}selected="selected" {% endifequal %}>100</option>        
+    </select>
+
+    <label>开始时间:</label>
+    <input type="text" id="beginTime" name="beginTime" class="ui-corner-all"  value="{{ beginTime }}" />
+
+    <label >结束时间:</label>
+    <input type="text" id="endTime"   name="endTime"  class="ui-corner-all" value="{{ endTime }}" /> 
+
+    <script type="text/javascript">
+            $('#beginTime').datetimepicker({
+                dateFormat: "yy-mm-dd",
+                timeFormat: "HH:mm",
+            });
+
+            $('#endTime').datetimepicker({
+                dateFormat: "yy-mm-dd",
+                timeFormat: "HH:mm",
+            });
+    </script>
+
+    <label>服务器:</label>  
+    <select id="hostName" name="hostName" multiple="multiple">
+        {% for item in hostList %}
+            <option value="{{ item.hostName }}" 
+            {% for host in hostName%}
+                {% ifequal item.hostName host %}
+                    selected="selected" 
+                {% endifequal %} 
+            {% endfor%} >         
+            {{item.hostName}}</option>
+        {% endfor %}
+    </select> 
+          
+    <script type="text/javascript">
+        $("select#hostName").multiselect({
+                 noneSelectedText: "请选择",
+             }).multiselectfilter();
+
+            $(".ui-multiselect-header ul.ui-helper-reset li").css({"list-style-type":"none"});
+
+            $("#toolbar button").css({
+                "position":"relative",
+                "top":"2px",
+                "background-color":"#fff",
+                "background-image":"url()"
+            });
+    </script>
+    
+    <input type="submit" value="查询" />
+    
+</form>
+</div>
+</div>
+
+<div id="imgContainer">
+</div>
+
+<div id="progressbarDialog" style="display: none">
+<div id="progressbar">
+    <div class="progress-label">Loading...</div>
+</div>
+</div>
+
+<!--判断是否提交了表单且有返回数据-->
+{% if topN and topNCounts and topNAvgRows and topNqueryTimeAvg %}
+<div id="topNSlowSqlContainer" >
+    <div id="topNCounts" class="topNSlowSql ui-corner-all" >
+        <h2>Top {{nCounts}} Execution Times</h2>
+        <table class="search">   
+            <tr>
+                <td>
+                    <input type="text" name="topNCountsSearch" id="topNCountsSearch" class="searchInput ui-corner-bottom"  placeholder="search sql"/>
+                </td>
+                <td><img src="{% static "img/search.png" %}" /> </td>       
+            </tr>
+        </table>
+
+        <table class="content">
+            <thead>
+                <tr>
+                    <td >sql</td> 
+                    <td ></td>
+                    <td ></td>                
+                    <td >count</td>
+                    
+                </tr>
+            </thead>
+            <tbody>
+            {% for item in topNCounts%}
+            {% if forloop.counter|divisibleby:"2" %}
+                <tr class="evenRow">
+            {% else %}
+                <tr class="oddRow">
+            {% endif %}
+                    <td class="slowSql" title="hostname:{{item.hostName}} login name:{{item.loginName}}">
+                        <div class="summary" >
+                            {%if item.sourceSql %}
+                                {{ item.sourceSql }}
+                            {% else %}
+                                {{item.sqlText}}
+                            {% endif %}
+                        </div>
+
+                        <div class="detail" >
+                            {%if item.sourceSql %}
+                                {{ item.sourceSql }}
+                            {% else %}
+                                {{item.sqlText}}
+                            {% endif %}
+                            <br><br> 
+                            <b>hashCode</b>:{{item.hashCode}}<br>
+                            <b>hostName</b>:{{item.hostName}}<br>
+                            <b>loginName</b>:{{item.loginName}}<br>
+                            <b>loginIP</b>:{{item.loginIP}}
+                        </div>
+                    </td>
+                    <td ><span class="ui-icon ui-icon-carat-1-s" title="unfold/fold sql"></span></td>
+                    <td ><span class="ui-icon ui-icon-image" title="draw sql profile"></span></td>
+                    <td>{{ item.perCounts}}</td>
+                    <input type="hidden" class="hostName" value="{{ item.hostName }}" />
+                    <input type="hidden" class="loginName" value="{{ item.loginName }}" />  
+                    <input type="hidden" class="hashCode" value="{{ item.hashCode }}" />                     
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+
+    </div>
+
+    <div id="topNAvgRows" class="topNSlowSql ui-corner-all" >
+        <h2>Top {{nAvgRows}} Average Rows</h2>
+
+        <table class="search">
+            <tr>
+                <td><input type="text" name="topNAvgRowsSearch" id="topNAvgRowsSearch" class="searchInput ui-corner-bottom"  placeholder="search sql"/></td>
+                <td><img src="{% static "img/search.png" %}" /> </td>
+            </tr>
+        </table>
+
+        <table class="content">
+            <thead>
+                <tr>
+                    <td >sql</td>
+                    <td ></td>
+                    <td ></td> 
+                    <td >rows</td>
+                </tr>
+            </thead>
+            <tbody>
+            {% for item in topNAvgRows%}
+            {% if forloop.counter|divisibleby:"2" %}
+                <tr class="evenRow">
+            {% else %}
+                <tr class="oddRow">
+            {% endif %}
+                    <td class="slowSql" title="hostname:{{item.hostName}} login name:{{item.loginName}}">
+                        <div class="summary">
+                            {%if item.sourceSql %}
+                                {{ item.sourceSql }}
+                            {% else %}
+                                {{item.sqlText}}
+                            {% endif %}
+                        </div>
+
+                        <div class="detail">
+                            {%if item.sourceSql %}
+                                {{ item.sourceSql }}
+                            {% else %}
+                                {{item.sqlText}}
+                            {% endif %}
+                            <br><br> 
+                            <b>hashCode</b>:{{item.hashCode}}<br>
+                            <b>hostName</b>:{{item.hostName}}<br>
+                            <b>loginName</b>:{{item.loginName}}<br>
+                            <b>loginIP</b>:{{item.loginIP}}
+                        </div>
+                    </td>
+                    <td ><span class="ui-icon ui-icon-carat-1-s" title="unfold/fold sql"></span></td>
+                    <td ><span class="ui-icon ui-icon-image" title="draw sql profile"></span></td>
+                    <td>{{ item.perAvgRows}}</td>
+                    <input type="hidden" class="hostName" value="{{ item.hostName }}" /> 
+                    <input type="hidden" class="loginName" value="{{ item.loginName }}" />  
+                    <input type="hidden" class="hashCode" value="{{ item.hashCode }}" />        
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div id="topNqueryTimeAvg" class="topNSlowSql ui-corner-all" >
+        <h2>Top {{nQueryTimeAvg}} Average Query Time</h2>
+
+         <table class="search">
+            <tr>
+                <td><input type="text" name="topNqueryTimeAvgSearch" id="topNqueryTimeAvgSearch" class="searchInput ui-corner-bottom"  placeholder="search sql"/></td>
+                <td><img src="{% static "img/search.png" %}"/> </td>
+            </tr>
+        </table>
+
+        <table class="content">
+            <thead>
+                <tr>
+                    <td >sql</td>
+                    <td ></td>
+                    <td ></td> 
+                    <td >time</td>
+                </tr>
+            </thead>
+            <tbody>
+            {% for item in topNqueryTimeAvg%}
+            {% if forloop.counter|divisibleby:"2" %}
+                <tr class="evenRow">
+            {% else %}
+                <tr class="oddRow">
+            {% endif %}
+                    <td class="slowSql" title="hostname:{{item.hostName}} login name:{{item.loginName}}">
+                        <div class="summary">
+                            {%if item.sourceSql %}
+                                {{ item.sourceSql }}
+                            {% else %}
+                                {{item.sqlText}}
+                            {% endif %}
+                        </div>
+
+                        <div class="detail">
+                            {%if item.sourceSql %}
+                                {{ item.sourceSql }}
+                            {% else %}
+                                {{item.sqlText}}
+                            {% endif %}
+                            <br><br> 
+                            <b>hashCode</b>:{{item.hashCode}}<br>
+                            <b>hostName</b>:{{item.hostName}}<br>
+                            <b>loginName</b>:{{item.loginName}}<br>
+                            <b>loginIP</b>:{{item.loginIP}}
+                        </div>
+                    </td>
+                    <td ><span class="ui-icon ui-icon-carat-1-s" title="unfold/fold sql"></span></td>
+                    <td ><span class="ui-icon ui-icon-image" title="draw sql profile"></span></td>
+                    <td>{{ item.perQueryTimeAvg}}</td>
+                    <input type="hidden" class="hostName" value="{{ item.hostName }}" />
+                    <input type="hidden" class="loginName" value="{{ item.loginName }}" />  
+                    <input type="hidden" class="hashCode" value="{{ item.hashCode }}" />         
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        
+    </div>
+    
+</div>
+
+{% else %}
+
+    {% if topN %}
+        {% if errors %}
+            <div id="errorContainer" title="参数错误">
+            {% for error in errors %}
+                <div>
+                <p><span class="ui-icon ui-icon-alert"></span>{{ error}}</p>
+                </div>
+            {% endfor %}
+        {% else %}
+            <div id="errorContainer" title="没有数据">
+            <div>
+            <p><span class="ui-icon ui-icon-alert"></span>没有查找到'{{beginTime}}'至'{{endTime}}'之间的慢日志数据!</p> 
+            </div>   
+        {% endif %}
+
+            </div>
+         
+    <script type="text/javascript">
+         $("#errorContainer").dialog({
+                                  resizable: false,
+                                  modal: true,
+                                  width:520,
+                            });
+    </script>
+
+    {% endif %}
+
+{% endif %}
+
+{% endblock %}

@@ -1,0 +1,61 @@
+{% extends "base_site.html" %}
+{% load i18n static %}
+{% load url from future %}
+
+
+{% block extrastyle %}
+{{ block.super }}
+    <link rel="stylesheet" type="text/css" href="{% static "css/table1.css" %}" />
+    <link href="{% static "css/index.css" %}" rel="stylesheet" type="text/css" />
+    <script src="{% static "js/jquery.js?v=1.83.min" %}" type="text/javascript"></script>
+    <script src="{% static "js/sucaijiayuan.js" %}"></script>
+{% endblock %}
+{% block content %}
+
+<div class="module">
+<div id="toolbar">
+<form action="" method="get">
+    <label style="margin-left:5px;" for="searchbar"><img src="/static/img/icon_searchbox.png" alt="Search" /></label>
+    <input type="text" size="30" name="q" value="{{ keyword|default:"" }}" id="searchbar" />
+    <input type="submit" value="Search Server" />
+</form>
+</div>
+</div>
+
+<form enctype="multipart/form-data" action="" method="post" id="delfile_form">
+<div class="submit-row">
+<input type="submit"  value="提交"/>
+</div>
+<div class="style">
+<table width="100% border="1"">
+<thead>
+<tr>
+    <th>环境</th>
+    <th>应用名</th>
+    <th>机器名</th>
+    <th>监控总开关</th>
+    <th>慢进程监控开关</th>
+    <th>Trace抽象数据收集开关</th>
+    <th>Trace详细数据收集开关</th>
+</tr>
+</thead>
+
+</div>
+{% for row in getdmlswitchlist %}
+<tr>
+    <td>{{row.env_type}}</td>
+    <td>{{row.service_name}}</td>
+    <td>{{row.machine_name}}</td>
+    <td>开:<input  type="radio" {% if row.monitor_status == 1 %} checked="checked" {% endif %} name="monitor_switch_{{row.machine_name}}" value="{{row.monitor_status}}_on" /> 
+              关:<input  type="radio" {% if row.monitor_status == 0 %} checked="checked" {% endif %}  name="monitor_switch_{{row.machine_name}}" value="{{row.monitor_status}}_off" /></td>
+    <td>开:<input  type="radio" {% if row.perf_slowsql == 1 %} checked="checked" {% endif %} name="slowlog_switch_{{row.machine_name}}" value="{{row.perf_slowsql}}_on" /> 
+              关:<input  type="radio" {% if row.perf_slowsql == 0 %} checked="checked" {% endif %}  name="slowlog_switch_{{row.machine_name}}" value="{{row.perf_slowsql}}_off" /></td>
+    <td>开:<input  type="radio" {% if row.collect_dmv == 1 %} checked="checked" {% endif %} name="dmv_switch_{{row.machine_name}}" value="{{row.collect_dmv}}_on" /> 
+              关:<input  type="radio" {% if row.collect_dmv == 0 %} checked="checked" {% endif %}  name="dmv_switch_{{row.machine_name}}" value="{{row.collect_dmv}}_off" /></td>
+    <td>开:<input  type="radio" {% if row.collect_trace == 1 %} checked="checked" {% endif %} name="trace_switch_{{row.machine_name}}" value="{{row.collect_trace}}_on" /> 
+              关:<input  type="radio" {% if row.collect_trace == 0 %} checked="checked" {% endif %}  name="trace_switch_{{row.machine_name}}" value="{{row.collect_trace}}_off" /></td>
+
+</tr>
+{% endfor %}
+</form>
+{% endblock %}

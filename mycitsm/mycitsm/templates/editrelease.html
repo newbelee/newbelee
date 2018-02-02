@@ -1,0 +1,213 @@
+{% extends "base_site.html" %}
+{% load i18n static %}
+{% load url from future %}
+
+{% block extrastyle %}
+{{ block.super }}
+    <link rel="stylesheet" type="text/css" href="{% static "css/forms.css" %}" />
+    <link rel="stylesheet" type="text/css" href="{% static "css/jquery-ui-1.10.4.custom.css" %}" />
+{% endblock %}
+
+{% block extrahead %}
+    <script src="{% static "js/jquery-1.10.2.js" %}"></script>
+    <script src="{% static "js/jquery-ui.js" %}"></script>
+    
+    <script>
+        function appendlist(){
+            var list=$("ol li:last");
+            var opType=list.find(".opType").val();
+            var cpList=list.clone(true);
+
+            cpList.find(".opType").val(opType);
+
+            if(opType=="修改表"){
+                cpList.find(".colname").val("");
+            }
+            else if(opType=="新建表"){
+                cpList.find(".objname").val("");
+                cpList.find(".colname").val("");
+                cpList.find(".idxname").val("");
+            }
+            else if(opType=="加索引"){
+                cpList.find(".idxname").val("");
+                
+            }
+
+                   
+            $("ol").append(cpList);
+        }
+
+        function removelist(nowthis){
+            if ($("ol li").size()==1){
+                alert("必须至少包含一个明细！");
+                return;
+            }
+            $(nowthis).parent().remove();
+        }
+
+        function checktype(nowthis){
+            if ($(nowthis).val()=="修改表"){
+                $(nowthis).parent().find(".extra1").css("display","inline");
+                $(nowthis).parent().find(".extra2").css("display","none");
+
+            }
+            else if($(nowthis).val()=="新建表"){
+                $(nowthis).parent().find(".colname").val(""); 
+                $(nowthis).parent().find(".idxname").val(""); 
+                $(nowthis).parent().find(".extra1").css("display","none");
+                $(nowthis).parent().find(".extra2").css("display","none");
+            }
+            else if($(nowthis).val()=="加索引"){
+                $(nowthis).parent().find(".extra2").css("display","inline");
+                $(nowthis).parent().find(".extra1").css("display","none");
+
+
+            }
+
+        }
+
+        function waitServerResponse(){
+            $('#myModal').dialog("open");
+        }; 
+        
+
+       $(document).ready(function() {
+            $("#myModal").dialog({
+                autoOpen: false,
+                resizable: false,
+                width: 300,
+                height: 80,
+                modal: true,
+                open: function (event, ui) {
+                    $(this).closest('.ui-dialog').find('.ui-dialog-titlebar').hide();
+                }
+            });
+        });
+
+    </script>
+{% endblock %}
+
+{% block content %}
+
+<div style="color:red;">
+    <ul>
+        <li>发布单中发布明细的发布顺序与排序一致.</li>
+        <li>修改表结构只允许新增非自增长字段.</li>
+        <li>修改表结构可能会阻塞应用，请提前联系DBA进行评估.</li>
+    </ul>
+</div>
+
+<div>
+    {% if errors%}
+        {% for error in errors %}
+            <p class="errornote">
+                {{ error }}
+            </p>
+        {% endfor %}
+    {% endif %}
+</div>
+
+<form enctype="multipart/form-data" action="" method="post" id="apply_form" onsubmit="waitServerResponse()">
+
+<fieldset class="module aligned">
+   
+    <div class="form-row">
+        <label class="required">目标数据库:</label>
+        <select {% if not has_perm %} disabled="disabled" {% endif %} name="dbname">
+        {% for db in dblist %}
+           <option value="{{db.0}}"  {%ifequal dbname|lower db.0|lower %}selected="selected"{% endifequal %}>{{db.0}}</option>
+        {% endfor %}
+        </select>
+    </div>
+
+    <div class="form-row">
+        <label class="required">发布明细:</label>
+        <input type="button" onclick="appendlist()" id="addbtn" value="添加明细" {% if not has_perm %} disabled="disabled" {% endif %} />
+        
+        <ol>
+
+            {% if releaseDetailList %}
+                {% for item in releaseDetailList %}
+                    <li>
+                        <span>选择发布类型:</span>
+                        <select class='opType' name='type'  {% if not has_perm %} disabled="disabled" {% endif %} onchange="checktype(this)">
+                            <option value='新建表' {%ifequal item.type|lower '新建表' %}selected="selected"{% endifequal %}>新建表</option>
+                            <option value='修改表' {%ifequal item.type|lower '修改表' %}selected="selected"{% endifequal %}>修改表</option>
+                            <option value='加索引' {%ifequal item.type|lower '加索引' %}selected="selected"{% endifequal %}>加索引</option>
+                        </select>
+
+                        <span>DB对象名称:</span>
+                        <input type='text' size='40' class='objname' name='objname' value="{{item.objname}}" {% if not has_perm %} disabled="disabled" {% endif %}/>
+                        <div class='extra1'               
+                                     {%ifequal item.type|lower '新建表' %}
+                                        style='display:none;'
+                                     {% else %}
+                                        style='display:inline;'
+                                     {% endifequal %}                 
+                        >
+                            新增字段:<input type='text' size='20' class='colname' name='colname' value="{{item.colname}}" {% if not has_perm %} disabled="disabled" {% endif %}/>
+                        </div>
+                        <input style="margin-left:2em;" type='button' onclick='removelist(this)' class='delbtn' value='删除' {% if not has_perm %} disabled="disabled" {% endif %}/>
+                    </li>
+                {%  endfor %}
+
+            {% else %}
+                {% for item in rows %}
+                    <li>
+                        <span>选择发布类型:</span>
+                        <select class='opType' name='type'  {% if not has_perm %} disabled="disabled" {% endif %} onchange="checktype(this)">
+                            <option value='新建表' {%ifequal item.type|lower '新建表' %}selected="selected"{% endifequal %}>新建表</option>
+                            <option value='修改表' {%ifequal item.type|lower '修改表' %}selected="selected"{% endifequal %}>修改表</option>
+                            <option value='加索引' {%ifequal item.type|lower '加索引' %}selected="selected"{% endifequal %}>加索引</option>
+                        </select>
+
+                        <span>DB对象名称:</span>
+                        <input type='text' size='40' class='objname' name='objname' value="{{item.objname}}" {% if not has_perm %} disabled="disabled" {% endif %}/>
+                        <div class='extra1'               
+                                     {%ifequal item.type|lower '新建表' %}
+                                        style='display:none;'
+                                     {% else %}
+                                        style='display:inline;'
+                                     {% endifequal %}                 
+                        >
+                            新增字段:<input type='text' size='20' class='colname' name='colname' value="{{item.colname}}" {% if not has_perm %} disabled="disabled" {% endif %}/>
+                        </div>
+                        <div class='extra2'               
+                                 {%ifequal item.type|lower '新建表'%}
+                                    style='display:none;'
+                                 {% else %}
+                                    style='display:inline;'
+                                 {% endifequal %}                 
+                    >
+                        新增索引:<input type='text' size='40' class='idxname' name='idxname' value="{{item.idxname}}"/>
+                       </div>
+
+                        <input style="margin-left:2em;" type='button' onclick='removelist(this)' class='delbtn' value='删除' {% if not has_perm %} disabled="disabled" {% endif %}/>
+                    </li>
+                {% endfor %}
+
+            {% endif %}
+       
+        </ol>
+    </div>
+</fieldset>
+
+{% if has_perm %}
+<div class="submit-row">
+    <input type="submit" value="提交" class="default" name="submit" />
+    <input type="submit" value="暂存" class="" name="save" />
+    <p class="deletelink-box"><a href="cancel/" class="deletelink">取消申请单</a></p>
+</div>
+{% endif %}
+
+</form>
+
+<div id="myModal" style="display: none;position:fixed;top:58%;border: 1px solid #aaaaaa;">
+    <div style="text-align: center">
+        <h4 style="height: 40px; font-family: 微软雅黑">
+            <img src="{% static "img/loading.gif" %}" alt="loading" />
+            <br />正在处理，请耐心等候...</h4>
+    </div>
+</div>
+
+{% endblock %}

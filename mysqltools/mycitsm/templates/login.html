@@ -1,0 +1,49 @@
+{% extends "base_site.html" %}
+{% load i18n static %}
+{% load url from future %}
+
+{% block extrastyle %}{{ block.super }}<link rel="stylesheet" type="text/css" href="{% static "css/login.css" %}" />{% endblock %}
+
+{% block bodyclass %}login{% endblock %}
+
+{% block nav-global %}{% endblock %}
+
+{% block content_title %}{% endblock %}
+
+{% block breadcrumbs %}{% endblock %}
+
+{% block content %}
+
+{% if errors%}
+{% for error in errors %}
+<p class="errornote">
+    {{ error }}
+</p>
+{% endfor %}
+{% endif %}
+
+<div id="content-main">
+<form action="" method="post" id="login-form">
+{% csrf_token %}
+  <div class="form-row">
+    <label for="id_username" class="required">{% trans 'Username:' %}</label> 
+    <input type="text" id="id_username" name="username" value="{{username}}">
+  </div>
+  <div class="form-row">
+    <label for="id_password" class="required">{% trans 'Password:' %}</label> 
+    <input type="password" id="id_password" name="password" value="{{password}}">
+    <input type="hidden" name="next" value="{{ next }}" />
+  </div>
+  <div class="submit-row">
+    <label>&nbsp;</label><input type="submit" value="{% trans 'Log in' %}" />
+<!--     <label>&nbsp;</label><a href="{% url 'mycitsm.views.userreg' %}" style="margin-left:20px;text-decoration:underline;">用户注册</a> -->
+  </div>
+  <div class="form-row" style="padding-top:15px;padding-left:155px">
+  </div>
+</form>
+
+<script type="text/javascript">
+document.getElementById('id_username').focus()
+</script>
+</div>
+{% endblock %}

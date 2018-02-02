@@ -1,0 +1,11 @@
+[08/Nov/2017 02:19:19] "GET / HTTP/1.0" 302 0
+[08/Nov/2017 02:19:19] "GET /dbmgmt/dblist/executesql?databaseName=taste_activity_center HTTP/1.0" 200 14016
+/usr/local/lib/python2.7/site-packages/django/template/defaulttags.py:59: UserWarning: A {% csrf_token %} was used in a template, but the context did not provide the value.  This is usually caused by not using RequestContext.
+  warnings.warn("A {% csrf_token %} was used in a template, but the context did not provide the value.  This is usually caused by not using RequestContext.")
+
+[08/Nov/2017 02:19:19] "GET /accounts/login/?next=/ HTTP/1.0" 200 1796
+[08/Nov/2017 02:19:25] "POST /dbmgmt/dblist/executesql?databaseName=b2b2_order HTTP/1.0" 200 31601
+[08/Nov/2017 02:19:45] "POST /dbmgmt/dblist/executesql?databaseName=taste_activity_center HTTP/1.0" 200 14634
+[08/Nov/2017 02:20:02] "POST /dbmgmt/dblist/executesql?databaseName=taste_activity_center HTTP/1.0" 200 14634
+[08/Nov/2017 02:20:11] "POST /dbmgmt/dblist/executesql?databaseName=taste_activity_center HTTP/1.0" 200 14635
+[08/Nov/2017 02:20:22] "POST /dbmgmt/dblist/executesql?databaseName=taste_activity_center HTTP/1.0" 200 14634

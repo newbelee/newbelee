@@ -1,0 +1,233 @@
+{% extends "base_site.html" %}
+{% load i18n static %}
+{% load url from future %}
+
+{% block extrastyle %}{{ block.super }}
+    <link rel="stylesheet" type="text/css" href="{% static "css/forms.css" %}"/>
+    <link rel="stylesheet" type="text/css" href="{% static "css/table2.css" %}"/>
+    <link rel="stylesheet" type="text/css" href="{% static "css/jquery-ui-1.10.4.custom.css" %}" />
+    <link rel="stylesheet" type="text/css" href="{% static "css/jquery-ui.css" %}" />
+    <script type="text/javascript" src="{% static "js/jquery-1.10.2.js" %}"></script>
+    <script type="text/javascript" src="{% static "js/jquery-ui.js" %}"></script>
+{% endblock %}
+
+{% block extrahead %}
+ <script>
+  $(function() {
+  $( "#dialog" ).dialog({
+  autoOpen: false,
+  maxHeight: 600,
+  maxWidth: 550,
+  minHeight:300,
+  minWidth:550,
+  modal: true,
+  show: {
+  //effect: "blind",
+  //duration: 500
+  },
+  hide: {
+  }
+  });
+  $( "#opener" ).click(function() {
+  $( "#dialog" ).dialog( "open" );
+  });
+    
+$( ".accordion" ).accordion({
+    collapsible: true,
+    active:false
+    });
+
+});
+ </script>
+<script type="text/javascript">
+$(document).ready(function(){
+          $("#myModal").hide();
+          });
+function del_id(obj,id,dns,port)
+{
+if (confirm("确定删除数据库进程"+id+"?"))
+  {
+    $.post("{% url 'mycitsm.views.killprocessid' %}",
+        {'id':id,'dns':dns,'port':port},
+        function(ret){
+            if(ret=='1'){ 
+                alert("提交成功！");
+                $(obj).parents('tr').remove();
+
+            }
+            else if(ret=='2'){
+                alert("您无权限执行该操作！");
+            }
+                else{
+                alert("提交失败！");
+                }
+
+        }
+    );
+  }
+
+else
+  {
+  alert("放弃删除该进程!");
+  }
+}
+  function show_wait(){
+     $("#myModal").show();
+    }
+
+</script>
+{% endblock %}
+
+{% block content %}
+
+
+{% if dbtype == "MySQL" %}
+<fieldset class="module aligned">
+    <h2>运行状态</h2>
+    <div class="form-row">
+        <label>数据库时间:</label>
+        <input type="text" value="{{status.SYSTIME}}" />
+    </div>
+    <div class="form-row">
+        <label>当前连接数:</label>
+        <input type="text" value="{{status.THREADS_CONNECTED}}" />
+        (最大连接数：{{status.MAX_CONNECTIONS}})
+    </div>
+    <div class="form-row">
+        <label>当前打开文件数:</label>
+        <input type="text" value="{{status.OPEN_FILES}}" />
+        (文件打开限制：{{status.OPEN_FILES_LIMIT}})
+    </div>
+    </fieldset>
+    <fieldset class="module aligned" style="margin-top:20px;margin-bottom:20px;">
+    <h2 style="margin-bottom:5px;">长期未关闭闲置事务进程信息</h2>
+    <div class="style">
+    <table width="100%">
+    <thead>
+    <tr>
+        <th>OPERATION</th>
+        <th>ID</th>
+        <th>TRX_STATE</th>
+        <th>USER</th>
+        <th>HOST</th>
+        <th>DB</th>
+        <th>TRX_STARTED</th>
+        <th>SLEEP_TIME(s)</th>
+        <th>LAST_SQL</th>
+    </tr>
+    </thead>
+    {% for tranrow in tranrows %}
+    <tr>
+        <td><a href="#" onclick="del_id(this,{{tranrow.id}},'{{serverinfo.0}}',{{serverinfo.1}})">Kill</a></td>
+        <td>{{tranrow.id}}</td>
+        <td>{{tranrow.trx_state}}</td>
+        <td>{{tranrow.user}}</td>
+        <td>{{tranrow.host}}</td>
+        <td>{{tranrow.DB}}</td>
+        <td>{{tranrow.trx_started}}</td>
+        <td>{{tranrow.TIME}}</td>
+        <td width="500px" style="word-break:break-all;text-align:left;"><div class="accordion"><h4>{{tranrow.sqlsample}}</h4><div><span>{{tranrow.SQL_TEXT}}</span></div></div></td>
+    </tr>
+    {% endfor %}
+    </table>
+    </div>
+    </fieldset>
+    <fieldset class="module aligned" style="margin-top:20px;margin-bottom:20px;">
+    <h2 style="margin-bottom:5px;">长期未关闭的进行中事务进程信息</h2>
+    <div class="style">
+    <table width="100%">
+    <thead>
+    <tr>
+        <th>OPERATION</th>
+        <th>ID</th>
+        <th>TRX_STATE</th>
+        <th>USER</th>
+        <th>HOST</th>
+        <th>DB</th>
+        <th>TRX_STARTED</th>
+        <th>EXECUTE_TIME(s)</th>
+        <th>EXECUTE_SQL</th>
+    </tr>
+    </thead>
+    {% for goingtranrow in goingtranrows %}
+    <tr>
+        <td>Contact Developer</td>
+        <td>{{goingtranrow.id}}</td>
+        <td>{{goingtranrow.trx_state}}</td>
+        <td>{{goingtranrow.user}}</td>
+        <td>{{goingtranrow.host}}</td>
+        <td>{{goingtranrow.DB}}</td>
+        <td>{{goingtranrow.trx_started}}</td>
+        <td>{{goingtranrow.TIME}}</td>
+        <td width="500px" style="word-break:break-all;text-align:left;"><div class="accordion"><h4>{{goingtranrow.sqlsample}}</h4><div><span>{{goingtranrow.info}}</span></div></div></td>
+    </tr>
+    {% endfor %}
+    </table>
+    </div>
+    </fieldset>
+    <fieldset class="module aligned">
+    <h2 style="margin-bottom:5px;">数据库进程状态</h2>
+    <div class="style">
+    <table width="100%">
+    <thead>
+    <tr>
+        <th>OPERATION</th>
+        <th>ID</th>
+        <th>USER</th>
+        <th>HOST</th>
+        <th>DB</th>
+        <th>COMMAND</th>
+        <th>TIME(s)</th>
+        <th>TRX_STATE</th>
+        <th>STATE</th>
+        <th width="500px">SQLINFO</th>
+        <th>EXPLAIN</th>
+    </tr>
+    </thead>
+    {% for row in rows %}
+    <tr>
+        <td><a  onclick="del_id(this,{{row.ID}},'{{serverinfo.0}}',{{serverinfo.1}})" href="#">Kill</a></td>
+        <td>{{row.ID}}</td>
+        <td>{{row.USER}}</td>
+        <td>{{row.HOST}}</td>
+        <td>{{row.DB}}</td>
+        <td>{{row.COMMAND}}</td>
+        <td>{{row.TIME}}</td>
+        <td>{{row.trx_state}}</td>
+        <td>{{row.STATE}}</td>
+        <td width="500px" style="word-break:break-all;text-align:left;"><div class="accordion"><h4>{{row.sqlsample}}</h4><div><span>{{row.sqlinfo}}</span></div></div></td>
+        <td>
+            {% if row.descstatus == "T" %} 
+            <span><a href="mysqlexplain/dns={{serverinfo.0}}&dnsport={{serverinfo.1}}&db={{row.DB}}&sqlinfo={{row.sqlinfo}}" target="_blank">Desc</a></span> 
+            {% endif %}
+            {% if row.descstatus == "F" %}
+            <button disabled>Unusable</button>
+            {% endif %}
+         </td>
+    </tr>
+    {% endfor %}
+    </div>
+    </table>
+    </fieldset>
+{% endif %}
+
+{% if dbtype == "MongoDB" %}
+<fieldset class="module aligned">
+    <h2>运行状态</h2>
+    <div class="form-row">
+        <label>数据库时间:</label>
+        <input type="text" value="{{status.localTime}}" />
+    </div>
+    <div class="form-row">
+        <label>当前连接数:</label>
+        <input type="text" value="{{status.connections.current}}" />
+    </div>
+    <div class="form-row">
+        <label>剩余可用连接数:</label>
+        <input type="text" value="{{status.connections.available}}" />
+    </div>
+</fieldset>
+{% endif %}
+
+
+{% endblock %}

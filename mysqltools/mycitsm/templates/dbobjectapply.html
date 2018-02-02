@@ -1,0 +1,47 @@
+{% extends "base_site.html" %}
+{% load i18n static %}
+{% load url from future %}
+
+{% block extrastyle %}{{ block.super }}<link rel="stylesheet" type="text/css" href="{% static "css/intro.css" %}" />{% endblock %}
+
+{% block content %}
+<div id="content">
+
+<div class="introlist refpic">
+<table width="100%">
+<caption align="center">Guide</caption>
+<tr>
+    <td><a href="{% url 'mycitsm.views.newrelease' %}"><img src="/static/img/list_menu_newrelease.png" /></a></td>
+    <td>
+        <ul>
+            <li>新建/提交上传申请单</li>
+            <li>查看/修改暂存申请单</li>
+            <li>取消未提交申请单</li>
+        </ul>
+    </td>
+</tr>
+<tr>
+    <td><a href="{% url 'mycitsm.views.activerelease' %}"><img src="/static/img/list_menu_activerelease.png" /></a></td>
+    <td>
+        <ul>
+            <li>发布活动状态的申请单</li>
+            <li>查看发布单详情</li>
+            <li>手工结束未完成的申请单</li>
+        </ul>
+    </td>
+</tr>
+<tr>
+    <td><a href="{% url 'mycitsm.views.finishedrelease' %}"><img src="/static/img/list_menu_finishedrelease.png" /></a></td>
+    <td>
+        <ul>
+            <li>查看已完成的申请单</li>
+            <li>查看发布单历史详情</li>
+        </ul>
+    </td>
+</tr>
+</table>
+</div>
+
+</div>
+
+{% endblock %}

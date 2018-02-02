@@ -1,0 +1,63 @@
+{% extends "base_site.html" %}
+{% load i18n static %}
+{% load url from future %}
+
+{% block extrastyle %}{{ block.super }}<link rel="stylesheet" type="text/css" href="{% static "css/table.css" %}" />{% endblock %}
+
+{% block content %}
+<div style="padding:0 0 10px 0;">
+    <a href="addrelease"><button type="button" >新建申请单</button></a>
+</div>
+
+<div class="module">
+    <h2 style="text-align:center;font-size:15px;">未提交申请单</h2>
+</div>
+
+<div class="style">
+<table width="100%" border="1">
+<thead>
+<tr>
+    <th>申请单号</th>
+    <th>目标数据库</th>
+    <th>创建时间</th>
+    <th>创建者</th>
+    <th>最后修改时间</th>
+    <th>最后修改者</th>
+</tr>
+</thead>
+
+{% for row in rows %}
+<tr>
+    <td><a href="appid={{row.appid}}">{{row.appid}}</a></td>
+    <td>{{row.dbname}}</td>
+    <td>{{row.createddate|date:"Y-m-d H:i:s"}}</td>
+    <td>{{row.createdby}}</td>
+    <td>{{row.lastmodifieddate|date:"Y-m-d H:i:s"}}</td>
+    <td>{{row.lastmodifiedby}}</td>
+</tr>
+{% endfor %}
+
+</table>
+</div>
+
+<div class="paginator">
+    <span class="step-links">
+        <a href="?page=1">first&lt;&lt;</a>
+
+        {% if rows.has_previous %}
+            <a href="?page={{ rows.previous_page_number }}">previous</a>
+        {% endif %}
+
+        <span class="current">
+            Page {{ rows.number }} of {{ rows.paginator.num_pages }}.
+        </span>
+
+        {% if rows.has_next %}
+            <a href="?page={{ rows.next_page_number }}">next</a>
+        {% endif %}
+
+        <a href="?page={{ rows.paginator.num_pages }}">&gt;&gt;last</a>
+    </span>
+</div>
+
+{% endblock %}

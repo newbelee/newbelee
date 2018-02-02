@@ -1,0 +1,17 @@
+{% extends "base_site.html" %}
+{% load i18n static %}
+{% load url from future %}
+
+{% block content %}
+
+<div>
+    <p>SQL自动审核申请成功，后续系统会自动审核您的申请内容并给出邮件通知！</p>
+
+    <div style="padding:0 0 10px 0;">
+        <a href="/sqlreview/autoSqlCheck"><button type="button" >返回</button></a>
+        <a href="/sqlreview/autoSqlCheck/addAutoSqlCheckApply"><button type="button" >继续申请</button></a>
+    </div>
+
+<div>
+
+{% endblock %}

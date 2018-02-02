@@ -1,0 +1,321 @@
+{% extends "base_site.html" %}
+{% load i18n static %}
+{% load url from future %}
+
+
+{% block extrastyle %}
+    {{ block.super }}
+    <link rel="stylesheet" type="text/css" href="{% static "sqlreview/css/forms.css" %}" />
+    <link rel="stylesheet" type="text/css" href="{% static "sqlreview/css/jquery-ui-1.10.4.custom.css" %}" />
+    <link rel="stylesheet" href="{% static "sqlreview/codemirror/lib/codemirror.css" %}" />
+    <link rel="stylesheet" href="{% static "sqlreview/codemirror/addon/hint/show-hint.css" %}" />
+    <link rel="stylesheet" href="{% static "sqlreview/codemirror/addon/dialog/dialog.css" %}" />
+    <link rel="stylesheet" href="{% static "sqlreview/codemirror/theme/eclipse.css" %}" />
+    <link rel="stylesheet" href="{% static "sqlreview/codemirror/theme/neat.css" %}" />
+    <script src="{% static "sqlreview/codemirror/lib/codemirror.js" %}"></script>
+    <script src="{% static "sqlreview/codemirror/mode/sql/sql.js" %}"></script>
+    <script src="{% static "sqlreview/codemirror/mode/javascript/javascript.js" %}"></script>
+    <script src="{% static "sqlreview/codemirror/addon/selection/active-line.js" %}"></script>
+    <script src="{% static "sqlreview/codemirror/addon/hint/show-hint.js" %}"></script>
+    <script src="{% static "sqlreview/codemirror/addon/hint/anyword-hint.js" %}"></script>
+    <script src="{% static "sqlreview/codemirror/addon/edit/closebrackets.js" %}"></script>
+    <script src="{% static "sqlreview/codemirror/addon/display/placeholder.js" %}"></script>
+    <script src="{% static "sqlreview/codemirror/addon/dialog/dialog.js" %}"></script>
+    <script src="{% static "sqlreview/codemirror/addon/search/searchcursor.js" %}"></script>
+    <script src="{% static "sqlreview/codemirror/addon/search/search.js" %}"></script>
+    <script src="{% static "sqlreview/js/jquery-1.10.2.js" %}"></script>
+    <script src="{% static "sqlreview/js/jquery-ui.js" %}"></script>
+
+    <script type="text/javascript">
+
+     function sendFreqId(nowThis){
+            var freqId = $(nowThis).val(); 
+            $.post("{% url 'sqlreview.views.getFreqRuleDict' %}", 
+            {'freqId':freqId},
+            function(data){
+                var content = "该执行频率下至多允许" + data.join + "个join，执行时间不能超过" + data.time + "秒，预估扫描行数不能超过" + data.rows + "，" + data.filesort_temporary + "使用filesort或temporary";
+                $("#freqRuleHint").html(content);             
+            },
+            "json"
+            );
+        };   
+
+    
+    function waitServerResponse(){
+            if(mySqlEditor.getValue() != '')
+            {
+                $('#myModal').dialog("open");
+            };
+    };
+
+    $(document).ready(function() {
+            sendFreqId($("#freqId"));
+
+            $(".CodeMirror textarea").css({"word-break":"break-all"});
+
+            $("#myModal").dialog({
+                autoOpen: false,
+                resizable: false,
+                width: 300,
+                height: 80,
+                modal: true,
+                open: function (event, ui) {
+                    $(this).closest('.ui-dialog').find('.ui-dialog-titlebar').hide();
+                }
+            });
+        });   
+
+    </script>
+
+    <style type="text/css">
+      .CodeMirror {border: 1px solid #ddd;margin: 2px}
+      .CodeMirror pre.CodeMirror-placeholder { color: #999; }
+      input,span,th,td,tr,li  {font-size:13px;}
+      table,caption,p {font-size:13px;}
+      .content {background-color:#EDF3FE}
+
+      #formContainer {
+        padding: 2px;
+        border: 1px solid #ddd;
+      }
+
+      #formContainer table {
+       width: 100%;
+      }
+
+      #formContainer p label {
+       margin-left: 3px;
+      }
+      .sql {
+        word-break:break-all;
+      }
+    </style>
+
+{% endblock %}
+
+
+
+{% block content %}
+<div id="formContainer">
+        <form action="" method="post" onsubmit="waitServerResponse()">
+            <table  border="0">
+            <tr>
+                <th width="115px"><p>SQL执行频率:</p></th>
+                <td>
+                   <select name = "freqId" id="freqId" onchange="sendFreqId(this)">
+                    {% for freq in freqList %}
+                    <option value = "{{freq.id}}" {% ifequal freq.id|lower freqId|lower %}selected="selected"{% endifequal %}>{{freq.frequency}}</option>
+                    {% endfor %}
+                   </select>
+                   <span id="freqRuleHint" style='color:red;'></span>
+                </td>
+                
+            </tr>
+            </table>
+
+
+            {{ form.as_p }}
+            <div class="submit-row">
+                <span>(可一次提交多条语句，语句间使用英文半角分号分隔，若同时提交多条语句各语句只能使用选择的同一执行频率)</span>
+                <input type="button" value="重置内容" onclick="javascript:mySqlEditor.setValue('')" />
+                <input type="submit" name="formatsql" value="SQL格式化"/>
+                <input type="submit" name="checksql"  value="审核一下" class="default" />
+            </div>
+        </form>
+</div>
+    
+<script type="text/javascript">
+    CodeMirror.commands.autocomplete = function(cm) {
+        CodeMirror.showHint(cm, CodeMirror.hint.anyword);
+     }
+    var mySqlEditor = CodeMirror.fromTextArea(document.getElementById('id_sql'), {
+        mode: "text/x-mysql",
+        autoCloseBrackets: true,
+        indentWithTabs: true,
+        smartIndent: true,
+        styleActiveLine: true,
+        lineNumbers: true,
+        lineWrapping: true,
+        matchBrackets : true,
+        autofocus: true,
+        highlightSelectionMatches: {showToken: /\w/},
+        extraKeys: {"Ctrl-H": "autocomplete"}
+    });
+    mySqlEditor.setOption('theme','eclipse');
+</script>
+
+
+<br/>
+<br/>
+
+    <div id="myModal" style="display: none;position:fixed;top:58%;border: 1px solid #aaaaaa;">
+        <div style="text-align: center">
+            <h4 style="height: 40px; font-family: 微软雅黑">
+                <img src="{% static "sqlreview/img/loading.gif" %}" alt="loading" />
+                <br />正在处理，请耐心等候...</h4>
+        </div>
+    </div>
+
+
+   <div class="error list">
+   {%if errorSqlList %}
+   <fieldset class="module aligned"> 
+        <table width="100%" >
+        <tr>
+            <th width="115px">可能包含语法错误的SQL语句：</th>
+            <td>
+               <table width="100%" style="border:1px solid #ddd;">
+                    <caption>关于语法错误</caption>
+                    <tr class='content'>
+                        <td>
+                        <p>我们的离线语法检查器能够检测到90%以上的通常的语法错误，但也难免存在个别误报的情况，若经确认确实不存在语法问题，请默默的忽略误报结果！
+                        <br />对于包含语法错误的语句，我们仍会从字面上给出规范性的建议，但不能保证建议的正确性，所以请确保您的语句语法正确！</p>
+                        </td>
+                     </tr>
+                </table>
+                {%for errorSqlitem in errorSqlList %}
+                  <p style="color:red;" class="sql">{{errorSqlitem}};</p>
+                {% endfor %}
+            </td>
+        </tr>
+        </table>
+   </fieldset>
+   {% endif %}
+   </div>
+   
+   <div class="error list">
+   {%if noCheckSqlList %}
+   <fieldset class="module aligned"> 
+        <table width="100%" >
+        <tr>
+            <th width="115px">没有被审核的SQL语句：</th>
+            <td>
+               <table width="100%" style="border:1px solid #ddd;">
+                    <caption>关于未被审核的语句</caption>
+                    <tr class='content'>
+                        <td>
+                        <p>我们目前的SQL规范审核只审SELECT\INSERT\DELETE\UPDATE\CREATE打头的语句！请确认您提交的SQL语句属于这些类型！</p>
+                        </td>
+                     </tr>
+                </table>
+
+                {%for noCheckSqlitem in noCheckSqlList %}
+                  <p style="color:red;" class="sql">{{ noCheckSqlitem}};</p>
+                {% endfor %}
+            </td>
+        </tr>
+        </table>
+   </fieldset>
+   {% endif %}
+   </div>
+
+   <div class="suggestion list">
+   {%if suggestionList %}
+   <fieldset class="module aligned"> 
+        <table width="100%" >
+            <tr>
+                <th width="115px">我们给您的建议：</th>
+                 <td>
+                  {% if noSuggestion %}
+                    <p>什么都没有!</p>
+                  {% else %}
+                    {% for suggestion in suggestionList %}
+                    {% if suggestion.location %}
+                    
+                        <table width="100%" style="border:1px solid #ddd;">
+                            <caption>{{ suggestion.subject }}</caption>
+                            <tr class='content'><td><p>您提交的内容存在如下问题:</p></td></tr>
+                        </table>
+
+                        <br/> 
+
+                        <div class="results">                    
+                            <table id="result_list" width="100%">
+                           
+                             {% ifequal suggestion.sqlType 'DDL' %}
+                                <col width="5%">
+                                <col width="10%">
+                                <col width="85%">
+                                <thead>
+                                    <tr style="border:1px solid #ddd;">
+                                        <th>ID</th>
+                                        <th>Name</th>
+                                        <th>Issue</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                {% for problemItem in suggestion.location %}
+                                    {% if forloop.counter|divisibleby:"2" %}
+                                        <tr class="row1" style="border:1px solid #ddd;">
+                                    {% else %}
+                                        <tr class="row2" style="border:1px solid #ddd;">
+                                    {% endif %}
+                                            <td>{{forloop.counter }}</td>
+                                            <td>{{ problemItem.name }}</td>
+                                            <td>
+                                                <ul>
+                                                {% for issueItem in problemItem.issue %}
+                                                    {% ifequal  issueItem.type 'mandatory'%}
+                                                        <li style="color:red">{{ issueItem.content }}</li>
+                                                    {% else %}
+                                                        <li >{{ issueItem.content }}</li>
+                                                    {% endifequal %}
+                                                {% endfor %}
+                                                </ul>
+                                            </td>
+                                        </tr>
+                                {% endfor %}
+                                </tbody>
+                           
+                             {% else %}{% ifequal suggestion.sqlType 'DML' %}
+                                <col width="5%">
+                                <col width="30%">
+                                <col width="65%">
+                                <thead>
+                                    <tr style="border:1px solid #ddd;">
+                                        <th>ID</th>
+                                        <th>SQL</th>
+                                        <th>Issue</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                {% for problemItem in suggestion.location %}
+                                    {% if forloop.counter|divisibleby:"2" %}
+                                        <tr class="row1" style="border:1px solid #ddd;">
+                                    {% else %}
+                                        <tr class="row2" style="border:1px solid #ddd;">
+                                    {% endif %}
+                                            <td>{{ forloop.counter }}</td>
+                                            <td class="sql">{{ problemItem.sql }}</td>
+                                            <td>
+                                                <ul>
+                                                {% for issueItem in problemItem.issue %}
+                                                {% ifequal  issueItem.type 'mandatory'%}
+                                                    <li style="color:red">{{ issueItem.content }}</li>
+                                                {% else %}
+                                                    <li >{{ issueItem.content }}</li>
+                                                {% endifequal %}
+                                                {% endfor %}
+                                                </ul>
+                                            </td>
+                                        </tr>
+                                {% endfor %}
+                                </tbody>
+                            {% endifequal %}{% endifequal %}
+                            </table>
+
+                            <br/><br/><br/>
+
+                        </div>
+                    {% endif %}
+                    {% endfor %}
+                    <br/>
+                {% endif %}
+                </td>
+            </tr>
+        </table>
+    </fieldset>
+    {% endif %}
+    </div>
+    
+{% endblock %}

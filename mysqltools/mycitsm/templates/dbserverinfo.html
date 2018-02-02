@@ -1,0 +1,210 @@
+{% extends "base_site.html" %}
+{% load i18n static %}
+{% load url from future %}
+
+{% block extrastyle %}{{ block.super }}
+    <link rel="stylesheet" type="text/css" href="{% static "css/table1.css" %}" />
+    <link rel="stylesheet" type="text/css" href="{% static "css/jquery.dataTables.yadcf.css" %}" />
+    <link href="{% static "css/index.css" %}" rel="stylesheet" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="/static/installinfo/css/jquery.dataTables.css">
+
+    <script src="{% static "js/jquery.js?v=1.83.min" %}" type="text/javascript"></script>
+    <script src="{% static "js/sucaijiayuan.js" %}"></script>
+    <script language="javascript" src="/static/js/jquery-1.10.2.js"></script>
+    <script language="javascript" src="/static/js/jquery.dataTables.js"></script>
+    <script language="javascript" src="/static/js/jquery.dataTables.yadcf.js"></script>
+
+{% endblock %}
+{% block content_title %}{% if title %}<h1>{{ title }} (最近更新:{{gettime}})</h1>{% endif %}{% endblock %}
+{% block content %}
+
+<script language="JavaScript"> 
+
+Date.prototype.format = function(format){ 
+    var o = { 
+        "M+" : this.getMonth()+1, //month 
+        "d+" : this.getDate(), //day 
+        "h+" : this.getHours(), //hour 
+        "m+" : this.getMinutes(), //minute 
+        "s+" : this.getSeconds(), //second 
+        "q+" : Math.floor((this.getMonth()+3)/3), //quarter 
+        "S" : this.getMilliseconds() //millisecond 
+    } 
+
+    if(/(y+)/.test(format)) { 
+        format = format.replace(RegExp.$1, (this.getFullYear()+"").substr(4 - RegExp.$1.length)); 
+    } 
+
+    for(var k in o) { 
+        if(new RegExp("("+ k +")").test(format)) { 
+            format = format.replace(RegExp.$1, RegExp.$1.length==1 ? o[k] : ("00"+ o[k]).substr((""+ o[k]).length)); 
+        } 
+    } 
+    return format; 
+} 
+
+function GetYesterday(date,days){ 
+        var d=new Date(date); 
+        d.setDate(d.getDate()+days); 
+        var m=d.getMonth()+1; 
+        var month = ''
+        if(m<10)
+            month = '0'+m;
+        else
+            month = m;
+        return d.getFullYear()+'-'+month+'-'+d.getDate()+' '+d.getHours()+':'+d.getMinutes();
+     } 
+
+
+$(document).ready(function() {
+            //$('#demo').html( '<table cellpadding="0" cellspacing="0" border="0" class="display" id="example"></table>' );
+            
+            var now = new Date();
+            var today = now.format("yyyy-MM-dd hh:mm");
+            var yesterday = GetYesterday(today,-1);
+
+            // $.ajax({
+            //     url: '/serveradmin/dbserverinfo/',
+            //     type: 'POST',
+            //     dataType: 'json',
+            //     success:function(data) {
+            //         console.log(data);
+            //     }
+            // });
+
+            $('#example1').dataTable({
+                "searching":true,
+                "paging":false,
+                "pageLength":30,
+                "ordering": true,             //排序
+                "ajax":{
+                    "url":"/serveradmin/getdbserverinfo/",
+                    "type":"POST",
+                    "dataType":"json",
+                    "dataSrc":""
+                },
+                "columns":[
+                    {"data": "Environment", "title": "环境" },
+                    {"data":"AppName","title":"群集名 | 应用名"},
+                    //{"data":"isdr","title":"容灾类型"},
+                    {"data": "Approle", "title": "群集角色"},
+                    {"data":"hostname","title":"主机名",
+		                    "render":function(data, type, row, meta) {
+		                        return "<a href='envtype=all&host=" + data + "&cluseraddress=None' target='blank'>"+data+"</a>";
+		                    }
+                    },
+                    {"data":"located","title":"机房"},
+                    {"data":"mysqlversion","title":"版本"},
+                    {"data":"ServerStatus","title":"服务器状态",
+			                	"render":function(data, type, row, meta) {
+			                			color="";
+				                    if(data == "-")
+				                    		return "-";
+				                    else if(data == "Critical")
+				                    		color="red";				                      	
+				                    else if(data == "Fair")
+				                    		color="darkorange";		                      	
+				                    else if(data == "Good")
+				                    		color="green";
+				                    return "<a href='serverstatus/envtype=all&host=" + row.hostname + "' style='color:"+ color +";' target='blank'>"+data+"</a>";
+			                	}
+                    },
+                    {"data":"SlaveStatus","title":"复制状态",
+                        "render":function(data, type, row, meta) {
+                            return "-";
+                            if(data == "")
+                                return "-";
+                            else if(data == "Critical")
+                                return "<a href='slavestatus/envtype=all&host=" + row.hostname + "' style='color:red;' target='blank'>"+data+"</a>";
+                            else if(data == "Fair")
+                                return "<a href='slavestatus/envtype=all&host=" + row.hostname + "' style='color:darkorange;' target='blank'>"+data+"</a>";
+                            else if(data == "Good")
+                                return "<a href='slavestatus/envtype=all&host=" + row.hostname + "' style='color:green;' target='blank'>"+data+"</a>";
+                        }
+                    },
+                    {"data":"dnsall","title":"DNS"},
+                    {"data":"dball","title":"DB"},
+                    {"data":"statusorder","title":"状态"},
+                    {"data":"","title":"其他",
+                        "render":function(data, type, row, meta) {
+                            return "<span style='padding:8px 10px'><a href='/serveradmin/slowlogmonitor/?topN=30&beginTime="
+                                    +yesterday+"&endTime="+today+"&hostName="+row.hostname+"' title='Slow Log' target='blank'>Slow</a></span>"
+                                    +"<span style='padding:8px 10px'><a href='dmllogmonitor/host="+row.hostname+"' title='DML SQL' target='blank'>DML</a></span>" ;                                    
+ 
+                            var str = "<span style='padding:8px 10px'><a href='diskclear/host="+row.hostname+"' title='Disk Clear' target='blank'>Disk</a></span>"
+                                    +"<span style='padding:8px 10px'><a href='dmllogmonitor/host="+row.hostname+"' title='DML SQL' target='blank'>DML</a></span>" 
+                                    +"<span style='padding:8px 10px'><a href='/serveradmin/slowlogmonitor/?topN=30&beginTime="
+                                    +yesterday+"&endTime="+today+"&hostName="+row.hostname+"' title='Slow Log' target='blank'>Slow</a></span>"
+                                    +"<span style='padding:8px 10px'><a href='zabbix/host="+row.hostname+"' title='Zabbix' target='blank'>Zab</a></span>";
+                            if(row.Approle != "")
+                                return str+="<span style='padding:8px 10px'><a href='backupinfo/host="+row.hostname+"' target='blank'>Bkup</a></span>";
+                            else
+                                return str+="<span style='padding:8px 10px'><a href='backupinfo/host="+row.hostname+"' target='blank'>Bkup</a></span>";
+                            return "<span style='padding:8px 10px'><a href='/serveradmin/slowlogmonitor/?topN=30&beginTime="
+                                    +yesterday+"&endTime="+today+"&hostName="+row.hostname+"' title='Slow Log' target='blank'>Slow</a></span>"
+			}
+                    }
+                ],
+                "order":[[11,'desc']],
+                "columnDefs": [
+                    {"targets":8,"visible":false},
+                    {"targets":9,"visible":false},
+                    {"targets":10,"visible":false}
+                ],
+            }).yadcf([
+                    { column_number: 2, filter_type: "select", filter_default_label: "全选", filter_match_mode: "exact" },
+                    { column_number: 5, filter_type: "select", filter_default_label: "全选", filter_match_mode: "exact" },
+                    { column_number: 6, filter_type: "select", filter_default_label: "全选", filter_match_mode: "exact" }
+            ]);
+            
+            $("#btn_stop").click(function() {
+                var res = $("#btn_stop").val();
+                if(res == '停止刷新') {
+                    $("#btn_stop").val("开始刷新");
+                    clearTimeout(fresh);    
+                }
+                else if (res == '开始刷新') {
+                    $("#btn_stop").val("停止刷新");
+                    setTimeout('myrefresh()',30000);
+                }
+            });
+            show_sqlandplan()
+} );
+function show_sqlandplan() {
+        $(document).on("click", "#shell", function () {
+          var machinename = $(this).attr("machinename");
+        var ajax_url = '/serveradmin/dbserverinfo/getmachineip/';
+        var ajax_type ='POST'; //提交方法 
+        var ajax_data = {'machinename':machinename}; //表单数据 
+        $.ajax({
+            type:ajax_type, //表单提交类型 
+            url:ajax_url, //表单提交目标 
+            data:ajax_data, //表单数据
+            async:false,
+            success:function(msg)
+            {
+/*                alert("已经成功准备跳转")
+                alert(msg.machineip)*/
+                var argvstr=machinename+"&"+msg.machineip
+                window.location.href ="abc:url?"+argvstr;               
+            }
+            });
+        });
+}
+</script>
+
+
+<div class="module">
+</div>
+
+
+<div class="style">
+<table id="example1" style="width:100%;">
+
+</table>
+</div>
+
+<div style="display: none;width:60px;height:60px" id="rocket-to-top" >
+<div style="opacity:0;display: block;width:60px;height:60px;" class="level-2"></div>
+<div class="level-3" style="width:60px;height:60px"></div>
+{% endblock %}

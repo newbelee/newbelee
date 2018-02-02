@@ -1,0 +1,98 @@
+{% extends "base_site.html" %}
+{% load i18n static %}
+{% load url from future %}
+
+{% block extrastyle %}{{ block.super }}<link rel="stylesheet" type="text/css" href="{% static "css/intro.css" %}" />{% endblock %}
+{% block extrahead %}
+    <script type="text/javascript" src="{% static "js/jquery.min.js" %}"></script>
+    <script>
+        $(document).ready(function(){
+            $("#m1").fadeIn(400);
+            $("#m2").fadeIn(600);
+            $("#m3").fadeIn(800);
+            $("#m4").fadeIn(1000);
+            $("#m5").fadeIn(1200);
+            $("#m6").fadeIn(1400);
+        });
+    </script>
+    <style type="text/css">
+        div.navContainer {
+            margin:0 auto;
+            width:750px;
+            margin-top:10em
+        }
+
+        div.imgContainer {
+            display: none;
+            background: none repeat scroll 0 0 #f1f1f1;
+            border: 1px solid #e0e0e0;
+            float: left;
+            padding: 7px;
+            width: 225px;
+            margin: 4px;
+        }
+
+        div.imgContainer:hover{
+            background: none repeat scroll 0 0 #dfdfdf;
+        }
+
+        div.imgContainer img{
+            margin: 0;
+            padding: 0;
+            border: 1px solid #ffffff;
+            width: 99%;
+        }
+
+        div.imgContainer h3 {
+            background: url("/static/img/nav-bg.gif") repeat-x scroll 0 0 rgba(0, 0, 0, 0);
+            border: 1px solid #ffffff;  
+            font-size: 15px;
+            height: 20px;
+            margin: 0;
+            padding: 6px;
+            text-align: center;
+        }
+
+        div.imgContainer:hover h3{
+            color:#000000;
+        }
+
+    </style>
+{% endblock %}
+
+{% block content %}
+<div id="content">
+{% comment %}
+    <div class="intromenu"><img src="/static/img/welcome.png" height="150em" ></img></div>
+    <div class="intromenu" style="margin-top:3em">
+        <img src="/static/img/icon_earth.png" height="90em" ></img>
+        <img src="/static/img/mysql.png" height="80em" style="margin:auto auto auto 2em;" ></img> 
+        <img src="/static/img/upload.png" height="80em" style="margin:auto auto auto 2em;" ></img> 
+        <img src="/static/img/system.png" height="80em" style="margin:auto auto auto 2em;" ></img> 
+    </div>
+{% endcomment %}
+
+    <div class="navContainer">
+
+        <div id="m1" class="imgContainer">
+        <a  href="{% url "mycitsm.views.showuser" %}" target="_blank"><img src="/static/img/user_admin.png"/></a>
+        <a  href="{% url "mycitsm.views.showuser" %}" target="_blank"><h3>后台管理</h3></a>
+        </div>
+
+        <div  id="m3" class="imgContainer">
+        <a href="{% url "mycitsm.views.dblist" %}" target="_blank" ><img src="/static/img/db_mgmt.png" /></a>
+        <a href="{% url "mycitsm.views.dblist" %}" target="_blank"><h3>DB管理</h3></a>
+        </div>
+        
+        <div  id="m4" class="imgContainer">
+        <a href="{% url "mycitsm.views.dbserverinfo" %}" target="_blank" ><img src="/static/img/server_admin.png" /></a>
+        <a href="{% url "mycitsm.views.dbserverinfo" %}" target="_blank" ><h3>服务器管理</h3></a>
+        </div>
+
+        <div class="imgContainer"></div>
+        <div class="imgContainer"></div>
+        <div class="imgContainer"></div>
+
+    </div>
+</div>
+{% endblock %}

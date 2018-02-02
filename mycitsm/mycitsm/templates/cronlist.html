@@ -1,0 +1,119 @@
+{% extends "base_site.html" %}
+{% load i18n static %}
+{% load url from future %}
+
+{% block extrastyle %}{{ block.super }}<link rel="stylesheet" type="text/css" href="{% static "css/table.css" %}" />{% endblock %}
+
+{% block content %}
+<script language="javascript" src="/static/clustermgt/js/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" >
+$(function() {
+    tableSort($('table'));
+})
+function tableSort(jqTableObj) {
+    jqTableObj.find('thead th').click(
+        function(){
+            var dataType = $(this).attr('dataType');
+            var tableObj = $(this).closest('table');
+            var index = tableObj.find('thead th').index(this) + 1;
+            var arr = [];
+            var row = tableObj.find('tbody tr');
+            
+            $.each(row, function(i){arr[i] = row[i]});
+            
+            if($(this).hasClass('current')){
+                arr.reverse();
+            } else {
+                arr.sort(Utils.sortStr(index, dataType))
+                
+                tableObj.find('thead th').removeClass('current');
+                $(this).addClass('current');
+            }
+            
+            var fragment = document.createDocumentFragment();
+            
+            $.each(arr, function(i){
+                fragment.appendChild(arr[i]);
+            });
+            
+            tableObj.find('tbody').append(fragment);
+        }
+    );
+    var Utils = (function() {
+        function sortStr(index, dataType){
+            return function(a, b){
+                var aText=$(a).find('td:nth-child(' + index + ')').attr('_order') || $(a).find('td:nth-child(' + index + ')').text();
+                var bText=$(b).find('td:nth-child(' + index + ')').attr('_order') || $(b).find('td:nth-child(' + index + ')').text();
+        
+                if(dataType != 'text'){
+                    aText=parseNonText(aText, dataType);
+                    bText=parseNonText(bText, dataType);
+                    
+                    return aText > bText ? -1 : bText > aText ? 1 : 0;
+                } else {
+                    return aText.localeCompare(bText)
+                }
+            }
+        }
+
+        function parseNonText(data, dataType){
+            switch(dataType){
+                case 'int':
+                    return parseInt(data) || 0
+                case 'float':
+                    return parseFloat(data) || 0
+                default :
+                return filterStr(data)
+            }
+        }
+        
+        //过滤中文字符和$
+        function filterStr(data){
+            if (!data) {
+                return 0;
+            }
+            
+            return parseFloat(data.replace(/^[\$a-zA-z\u4e00-\u9fa5 ]*(.*?)[a-zA-z\u4e00-\u9fa5 ]*$/,'$1'));
+        }
+        
+        return {'sortStr' : sortStr};
+    })();
+}
+</script>
+<div class="module">
+    <h2 style="text-align:center;font-size:15px;">服务器调度状态列表</h2>
+</div>
+
+<div class="style">
+<table width="100%">
+<thead>
+<tr>
+    <th datatype="text" >服务器名</th>
+    <th datatype="text" >所属集群</th>
+    <th datatype="text" >角色</th>
+    <th datatype="text" >调度状态</th>
+</tr>
+</thead>
+<tbody>
+{% for server in serverlist %}
+<tr>
+    <td><a href="/serveradmin/dbserverinfo/envtype=all&host={{server.machine_name}}&cluseraddress=None" target="view_window" >{{server.machine_name}}</td>
+    {% if server.clustername != "" %}
+    <td><a href="/clustermgt/mhaconf/clustername={{server.clustername}}" target="view_window" >{{server.clustername}}</td>
+    {% else %}
+    <td></td>
+    {% endif %}
+    <td>{{server.clusterrole}}</td>
+    <td>
+        {% for miscron in server.misscronlist %}
+        {{miscron}}
+        {% endfor %}
+        {{server.cronstatus}}
+    </td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+</div>
+
+{% endblock %}

@@ -1,0 +1,27 @@
+{% extends "base_site.html" %}
+{% load i18n static %}
+{% load url from future %}
+
+{% block extrastyle %}{{ block.super }}<link rel="stylesheet" type="text/css" href="{% static "css/intro.css" %}" />{% endblock %}
+
+{% block content %}
+<div id="content">
+
+<div class="introlist refpic">
+<table width="100%">
+<caption align="center"></caption>
+<tr>
+     <label> 您好： 
+你所负责DB如下表的索引，经检测发现近半年来未曾使用到过，鉴于该表目前数据量较大，
+删除无效索引后可以提升修改速度，减少磁盘空间消耗，
+请帮忙确认无效索引是否可以删除，如需删除，DBA将统一提事件处理， 
+如未回复，DBA将按索引未使用，将其删除，请知晓！ </label>
+
+</tr>
+
+</table>
+</div>
+
+</div>
+
+{% endblock %}

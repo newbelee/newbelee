@@ -1,0 +1,31 @@
+{% extends "base_site.html" %}
+{% load i18n static %}
+{% load url from future %}
+
+{% block content %}
+
+{% if errors %}
+{% for error in errors %}
+<p class="errornote">
+    {{ error }}
+</p>
+{% endfor %}
+{% endif %}
+
+
+<div >
+<h1 style="color:red"> {{confirmation}} </h1>
+<h1 style="color:red"> {{pay_attention}} </h1>
+</div>
+
+
+<div>   
+    <div style="padding:0 0 10px 0;">
+        <a href="/dbmgmt/dev_test_user/"><button type="button" >返回至用户列表</button></a>
+        <a href="/dbmgmt/dev_test_user/add/"><button type="button" >创建新用户</button></a>
+        <a href="/dbmgmt/dev_test_user/user={{login}}&ip={{ip}}&envt={{envt}}&email={{email}}&username={{username}}&orginfo={{orginfo}}/"><button type="button" >用户赋权及密码重置</button></a>
+    </div>
+<div>
+
+{% endblock %}
+

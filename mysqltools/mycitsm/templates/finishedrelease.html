@@ -1,0 +1,72 @@
+{% extends "base_site.html" %}
+{% load i18n static %}
+{% load url from future %}
+
+{% block extrastyle %}{{ block.super }}<link rel="stylesheet" type="text/css" href="{% static "css/table.css" %}" />{% endblock %}
+
+{% block content %}
+<div class="module">
+    <div id="toolbar">
+    <form action="" method="get">
+        <label style="font-weight:bold;" for="searchbar"><img src="/static/img/icon_searchbox.png" alt="Search" />申请单号/目标数据库/发布表/上传者:</label>
+        <input type="text" size="40" name="q" value="{{ query|default:"" }}" id="searchbar" />
+        <input type="submit" value="查询" />
+    </form>
+    </div>
+    <h2 style="text-align:center;font-size:15px;">已完成申请单</h2>
+</div>
+
+<div class="style">
+<table width="100%" border="1">
+<thead>
+<tr>
+    <th>申请单号</th>
+    <th>目标数据库</th>
+    <th>当前状态</th>
+    <th>上传测试时间</th>
+    <th>上传测试人</th>
+    <th>上传UAT时间</th>
+    <th>上传UAT人</th>
+    <th>上传生产时间</th>
+    <th>上传生产人</th>
+</tr>
+</thead>
+
+{% for row in rows %}
+<tr>
+    <td><a href="appid={{row.appid}}">{{row.appid}}</a></td>
+    <td>{{row.dbname}}</td>
+    <td>{{row.status}}</td>
+    <td>{{row.uploadtestdate|date:"Y-m-d H:i:s"}}</td>
+    <td>{{row.uploadtestby}}</td>
+    <td>{{row.uploaduatdate|date:"Y-m-d H:i:s"}}</td>
+    <td>{{row.uploaduatby}}</td>
+    <td>{{row.uploadproductdate|date:"Y-m-d H:i:s"}}</td>
+    <td>{{row.uploadproductby}}</td>
+</tr>
+{% endfor %}
+
+</table>
+</div>
+
+<div class="paginator">
+    <span class="step-links">
+        <a href="?q={{ query|default:"" }}&page=1">first&lt;&lt;</a>
+
+        {% if rows.has_previous %}
+            <a href="?q={{ query|default:"" }}&page={{ rows.previous_page_number }}">previous</a>
+        {% endif %}
+
+        <span class="current">
+            Page {{ rows.number }} of {{ rows.paginator.num_pages }}.
+        </span>
+
+        {% if rows.has_next %}
+            <a href="?q={{ query|default:"" }}&page={{ rows.next_page_number }}">next</a>
+        {% endif %}
+
+        <a href="?q={{ query|default:"" }}&page={{ rows.paginator.num_pages }}">&gt;&gt;last</a>
+    </span>
+</div>
+
+{% endblock %}

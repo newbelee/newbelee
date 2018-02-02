@@ -1,0 +1,334 @@
+{% extends "base_site.html" %}
+{% load i18n static %}
+{% load url from future %}
+
+
+{% block extrastyle %}
+    {{ block.super }}
+    <link rel="stylesheet" type="text/css" href="{% static "sqlreview/css/forms.css" %}" />
+    <link rel="stylesheet" type="text/css" href="{% static "sqlreview/css/jquery-ui-1.10.4.custom.css" %}" />
+    <link rel="stylesheet" type="text/css" href="{% static "sqlreview/codemirror/lib/codemirror.css" %}" />
+    <link rel="stylesheet" type="text/css" href="{% static "sqlreview/codemirror/addon/hint/show-hint.css" %}" />
+    <link rel="stylesheet" type="text/css" href="{% static "sqlreview/codemirror/addon/dialog/dialog.css" %}" />
+    <link rel="stylesheet" type="text/css" href="{% static "sqlreview/codemirror/theme/eclipse.css" %}" />
+    <link rel="stylesheet" type="text/css" href="{% static "sqlreview/codemirror/theme/neat.css" %}" />
+
+    <style>
+        .bubble-box{ 
+        background:#EEE; 
+        width:2000px; 
+        margin-bottom:30px; 
+        }
+        .mybox{ 
+        background:#EEE;
+        width:1200px;
+        margin-bottom:30px;
+        }
+
+        .bubble-box .wrap{ 
+        background:#EEE; 
+        /* 修正IE6 */ 
+        _position:relative; 
+        _z-index:10; 
+        } 
+        /* arrow-effect */ 
+        .arrow-left{ border-left:20px solid #FFF; border-top:20px solid #EEE; margin-top:20px;} 
+        .arrow-right{ border-right:20px solid #FFF; border-top:20px solid #EEE;} 
+        .arrow-top{ border-left:20px solid #EEE; border-top:20px solid #FFF; margin-left:20px;} 
+        .arrow-bottom{ border-left:20px solid #EEE; border-bottom:20px solid #FFF; margin-left:20px;} 
+        .arrow-left .wrap, 
+        .arrow-right .wrap{ 
+        width:180px; 
+        padding:12px 10px 12px 10px; 
+        margin-top:-40px; 
+        } 
+        .arrow-top, .arrow-bottom{ width:140px;} 
+        .arrow-top .wrap, 
+        .arrow-bottom .wrap{ 
+        width:180px; 
+        padding:12px 10px 12px 10px; 
+        margin-left:-40px; 
+        }
+        .CodeMirror{
+          height: 200px !important;
+        }
+      .CodeMirror {border: 1px solid #ddd;margin: 2px}
+      .CodeMirror pre.CodeMirror-placeholder { color: #999; }
+      input,span,th,td,tr,li  {font-size:13px;}
+      table,caption,p,label {font-size:13px;}
+      .content {background-color:#EDF3FE}
+
+      #formContainer {
+        padding: 2px;
+        border: 1px solid #ddd;
+      }
+
+      #formContainer table {
+       width: 100%;
+      }
+
+      #formContainer p label {
+       margin-left: 3px;
+      }
+
+      .sql {
+            word-break:break-all;
+      }
+      .aligned label{
+        width: 18em !important;
+      }
+      .dataTables_wrapper .dataTables_filter input{
+        border: 1px solid #ccc !important;
+      }
+
+    </style>
+    
+    <script src="{% static "sqlreview/codemirror/lib/codemirror.js" %}"></script>
+    <script src="{% static "sqlreview/codemirror/mode/sql/sql.js" %}"></script>
+    <script src="{% static "sqlreview/codemirror/mode/javascript/javascript.js" %}"></script>
+    <script src="{% static "sqlreview/codemirror/addon/selection/active-line.js" %}"></script>
+    <script src="{% static "sqlreview/codemirror/addon/hint/show-hint.js" %}"></script>
+    <script src="{% static "sqlreview/codemirror/addon/hint/anyword-hint.js" %}"></script>
+    <script src="{% static "sqlreview/codemirror/addon/edit/closebrackets.js" %}"></script>
+    <script src="{% static "sqlreview/codemirror/addon/display/placeholder.js" %}"></script>
+    <script src="{% static "sqlreview/codemirror/addon/dialog/dialog.js" %}"></script>
+    <script src="{% static "sqlreview/codemirror/addon/search/searchcursor.js" %}"></script>
+    <script src="{% static "sqlreview/codemirror/addon/search/search.js" %}"></script>
+    <script language="javascript" src="{% static "js/jquery-1.12.3.js" %}"></script>
+
+    <script src="{% static "sqlreview/js/jquery-ui.js" %}"></script>
+
+    <link rel="stylesheet" type="text/css" href="{% static "css/jquery.dataTables.min.css" %}" />
+    <link rel="stylesheet" type="text/css" href="{% static "css/buttons.dataTables.min.css" %}" />
+
+    <script language="javascript" src="/static/js/jquery.dataTables.min.js"></script>
+
+    <script language="javascript" src="/static/js/jquery.dataTables.yadcf.js"></script>
+    
+    <script language="javascript" src="{% static "js/dataTables.buttons.min.js" %}"></script>
+    <script language="javascript" src="{% static "js/jszip.min.js" %}"></script>
+    <script language="javascript" src="{% static "js/pdfmake.min.js" %}"></script>
+    <script language="javascript" src="{% static "js/vfs_fonts.js" %}"></script>
+    <script language="javascript" src="{% static "js/buttons.html5.min.js" %}"></script>
+
+    <!-- 控制宽度的自动适应 -->  
+    <style type="text/css">  
+      .result {  
+         width:100%;/*自动适应父布局宽度*/  
+         overflow:auto;  
+         word-break:break-all;  
+         height: 15px;
+         overflow:auto;
+        /*在ie中解决断行问题(防止自动变为在一行显示，主要解决ie兼容问题，ie8中当设宽度为100%时，文本域类容超过一行时，  
+        当我们双击文本内容就会自动变为一行显示，所以只能用ie的专有断行属性“word-break或word-wrap”控制其断行)*/  
+      }
+    </style>  
+
+    <script type="text/javascript">
+        
+        function waitServerResponse(){
+            if(mySqlEditor.getValue() != '')
+            {
+                $('#myModal').dialog("open");
+            };
+
+        };                    
+
+        $(document).ready(function() {
+            $(".CodeMirror textarea").css({"word-break":"break-all"});            
+            $("#myModal").dialog({
+                autoOpen: false,
+                resizable: false,
+                width: 300,
+                height: 80,
+                modal: true,
+                open: function (event, ui) {
+                    $(this).closest('.ui-dialog').find('.ui-dialog-titlebar').hide();
+                }
+            });
+            $("#dataResult").DataTable({
+              dom: 'Bfrtip',
+              "bProcessing" : true,
+              "aLengthMenu" : [10, 100, 1000],
+              "iDisplayLength" : 10,
+              "aaSorting" : [],
+              buttons: [
+                  'excelHtml5','pageLength'
+              ]
+            });
+
+        });
+    
+
+    </script>
+{% endblock %}
+
+
+
+{% block content %}
+
+<div id="formContainer">
+        <form action="" method="post" onsubmit="waitServerResponse()">
+            <table>
+            <tr>
+                <th width="115px"><p>请选择数据库:</p></th>
+                <td>
+                    <select id="databaseId"  name="databaseId"" style="width:200px;">
+                    {% for item in dblist %}
+                        <option value="{{ item.id }}" {% ifequal item.id|lower databaseId %} selected="selected" {% endifequal %}>{{item.Upload_DBName}}</option>
+                    {% endfor  %}
+                    </select>
+                    <span id="databaseNotExistInReviewHint" style='color:red;'></span>
+                </td>
+                
+            </tr>
+            </table>
+           
+           {{ form.as_p}}
+            
+            <div class="submit-row">
+                <span>(一次只能提交一条 sql)</span>
+                <input type="button" id="resetButton" value="重置内容" onclick="javascript:mySqlEditor.setValue('')" />
+                <input type="submit" id="formatsqlButton" name="formatsql" value="SQL格式化"/>
+                <input type="submit" id="getExecutePlanButton" name="getExecutePlan" value="查看执行计划"/>
+                <input type="submit" id="checksqlButton" name="executesql"  value="查  询"  class="default"/>
+
+            </div>
+        </form>
+</div>
+
+    
+    <script type="text/javascript">
+        CodeMirror.commands.autocomplete = function(cm) {
+            CodeMirror.showHint(cm, CodeMirror.hint.anyword);
+         }
+        var mySqlEditor = CodeMirror.fromTextArea(document.getElementById('id_sql'), {
+            mode: "text/x-mysql",
+            autoCloseBrackets: true,
+            indentWithTabs: true,
+            smartIndent: true,
+            styleActiveLine: true,
+            lineNumbers: true,
+            lineWrapping: true,
+            matchBrackets : true,
+            autofocus: true,
+            highlightSelectionMatches: {showToken: /\w/},
+            extraKeys: {"Ctrl-H": "autocomplete"}
+        });
+        mySqlEditor.setOption('theme','eclipse');
+    </script>
+  
+    <div id="myModal" style="display: none;position:fixed;top:58%;border: 1px solid #aaaaaa;">
+        <div style="text-align: center">
+            <h4 style="height: 40px; font-family: 微软雅黑">
+                <img src="{% static "sqlreview/img/loading.gif" %}" alt="loading" />
+                <br />正在处理，请耐心等候...</h4>
+        </div>
+    </div>  
+   <div class="error list">
+   {%if errorSqlList %}
+   <fieldset class="module aligned"> 
+        <table width="100%" >
+        <tr>
+            <th width="115px"><p>错误信息：</p></th>
+            <td>
+               <table width="100%" style="border:1px solid #ddd;">
+                    <caption>关于SQL语句错误检查</caption>
+                </table>
+                {%for errorSqlitem in errorSqlList %}
+                  <p style="color:red;" class="sql">{{errorSqlitem.sql}}
+                {% if errorSqlitem.warning %}
+                   <br /> {{errorSqlitem.warning }}
+                {%  endif %}
+                {% if errorSqlitem.error %}
+                   <br /> {{errorSqlitem.error }}
+                {%  endif %}
+                </p>
+                <hr>
+                {% endfor %} 
+            </td>
+        </tr>
+        </table>
+   </fieldset>
+   {% endif %}
+   </div>
+   
+   <div class="error list">
+   {%if timeoutSqlList %}
+   <fieldset class="module aligned"> 
+        <table width="100%" >
+        <tr>
+            <th width="115px"><p>执行时间超时的SQL语句：</p></th>
+            <td>
+               <table width="100%" style="border:1px solid #ddd;">
+                    <caption>关于SQL语句执行时间超时</caption>
+                    <tr class='content'>
+                        <td>
+                        <p>对于你提交的每SQL语句我们设定了一个超时时间{{sqlExecTimeout}}秒，若在该段时间内语句未执行完成（不包含返回结果的时间），则将强制关闭语句的执行</p>
+                        </td>
+                     </tr>
+                </table>
+                {%for timeoutSqlitem in timeoutSqlList %}
+                  <p style="color:red;" class="sql">{{timeoutSqlitem}}; </p>
+                {% endfor %} 
+            </td>
+        </tr>
+        </table>
+   </fieldset>
+   {% endif %}
+   </div>
+   
+   
+   <div class="error list">
+   {%if unformattedSqlList  %}
+   <fieldset class="module aligned"> 
+        <table width="100%" >
+        <tr>
+            <th width="115px"><p>没有被正确格式化的SQL语句：</p></th>
+            <td>
+               <table width="100%" style="border:1px solid #ddd;">
+                    <caption>关于SQL语句格式化</caption>
+                    <tr class='content'>
+                        <td>
+                        <p>该格式化工具可以格式化通常的SQL语句，但对于存在语法错误或者个别较特殊的SQL语句可能不被支持！</p>
+                        </td>
+                     </tr>
+                </table>
+                {%for unformattedSqlItem in unformattedSqlList %}
+                  <p style="color:red;" class="sql">{{unformattedSqlItem}};</p>
+                {% endfor %}
+            </td>
+        </tr>
+        </table>
+   </fieldset>
+   {% endif %}
+   </div>
+   <div class="list">
+   {%if sqlResultDict %}
+   <p style="margin-top:15px;">返回结果( 限制在 100 条以内 ):
+      <span style="color:blue;">执行时间: {{ time }} (秒) ; 返回行数: {{ rowcount }}</span>
+    </p>
+    <table width="100%" id="dataResult" class="">
+    <thead>
+    <tr>
+        {%for desc_item in field_desc %}
+        <th width="{{ width }}">{{ desc_item }}</th>
+        {% endfor %}
+    </tr>
+    </thead>
+    <tbody>
+    {%for row in sqlResultDict %}
+    <tr>
+        {%for row_item in row %}
+        <td width="{{ width }}">
+          <textarea  readonly="readonly" class="result">{{ row_item }}</textarea>
+        </td>
+        {% endfor %}
+    </tr>
+    {% endfor %}       
+    </tbody>
+    </table>
+   {% endif %}
+   </div>
+
+{% endblock %}

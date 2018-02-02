@@ -1,0 +1,176 @@
+input, button, select{
+    height: 23px;
+     }
+
+td,th {
+      font-size: 12px;
+      vertical-align: middle;
+}
+
+.block1 {
+      margin-top:8px;
+      margin-bottom:20px;
+      width:100%;
+      border: 1px solid #CCCCCC;
+      height: auto;
+      float: left;
+      font-size: 13px;
+      }
+.block1 input, .block1 select {
+      height: 23px;
+      margin: 5px;
+      padding: 0 5px;
+      font-size: 13px;
+      border: 1px solid #bbb;
+      }
+
+.block1 .error {
+      margin: 20px 0 30px 200px
+      }
+
+.block1 .error ul li{
+      list-style-image: url(../img/icon-error.gif);
+      line-height: 20px;
+      height: 20px;
+      font-size: 13px;
+      padding: 0;
+      margin: 0;
+      border: 0;
+      }
+
+.block1 .warning {
+      margin: 20px 0 30px 200px
+      }
+
+.block1 .warning ul li{
+      list-style-image: url(../img/icon-warning.gif);
+      line-height: 20px;
+      height: 20px;
+      font-size: 13px;
+      padding: 0;
+      margin: 0;
+      border: 0;
+      }
+.block1 table{
+      margin: 20px 0 30px 0;
+      border: 1px solid #CCC;              
+      vertical-align: middle;
+      padding: 10px;
+      }
+
+.block1 table span{
+      color:red;
+      }
+
+.block1 table tr{
+      border: 0px;
+}
+
+.block1 table tr td.left{
+      width:auto;
+      border: 0px;
+      text-align:right;
+      height: 30px;
+      line-height: 30px;
+      font-size: 13px;
+      }
+
+.block1 table tr td.right{
+      width:auto;
+      border: 0px;
+      text-align:left;
+      height: 30px;
+      line-height: 30px;
+      font-size: 13px;
+      }
+
+.block1 h2{
+        margin-top: 0;
+        padding: 2px 5px 3px 5px;
+        font-size: 14px;
+        text-align: left;
+        font-weight: bold;
+        background: #7CA0C7 url(../img/default-bg.gif) top left repeat-x;
+        color: white;
+        height:20px;
+        line-height:20px;
+}
+.block2 input, .block2 select {
+      height: 23px;
+      margin: 5px;
+      padding: 0 5px;
+      font-size: 13px;
+      border: 1px solid #bbb;
+     }
+ 
+.block2 {
+      margin: 0;
+      margin-bottom:20px;
+      margin-top:8px;
+      width: 100%;
+      border: 1px solid #CCCCCC;
+      height: auto;
+      float: left;      
+      font-size: 14px;
+      }
+
+.block2 ul, .block2 ul li {
+      font-size: 12px;
+      }
+
+.block2 h2{
+        margin: 0;
+        padding: 2px 5px 3px 5px;
+        font-size: 14px;
+        text-align: left;
+        font-weight: bold;
+        background: #7CA0C7 url(../img/default-bg.gif) top left repeat-x;
+        color: white;
+        height:20px;
+        line-height:20px;
+}
+
+.block2 table{
+        border: 0px solid black;
+        font-size: 12px;
+        }
+
+.black2 table tr{
+        border: 0px solid black;
+        font-size: 12px;
+        }
+
+.black2 table tr td th{
+        border: 0px solid black;
+        font-size: 12px;
+        }
+
+.serverconf {
+         margin: 20px;
+            }
+
+.serverconf p {
+         line-height: 30px;
+         height:30px;
+              }
+       
+#form {
+       margin: 30px 0 10px 170px;
+       padding: 0 30px 20px 0;
+      }
+
+
+.submit-row {
+           margin-left:200px;
+           margin-bottom:50px;
+            }
+
+.submit-row input {
+                  font-size: 15px;
+                  background: white url(../img/nav-bg.gif) bottom repeat-x;
+                  padding: 3px 5px;
+                  color: black;
+                  border: 1px solid #bbb;
+                  border-color: #ddd #aaa #aaa #ddd;
+                  height:25px;
+                  }

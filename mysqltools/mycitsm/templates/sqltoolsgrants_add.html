@@ -1,0 +1,56 @@
+{% extends "base_site.html" %}
+{% load i18n static %}
+{% load url from future %}
+
+{% block extrastyle %}{{ block.super }}
+<link rel="stylesheet" type="text/css" href="{% static "css/chosen.css" %}" />
+
+<script language="javascript" src="{% static "js/jquery-1.12.3.js" %}"></script>
+<script type="text/javascript" src="{% static "js/jquery-ui.js" %}"></script>
+<script language="javascript" src="{% static "js/chosen.jquery.js" %}"></script>
+<script language="javascript" src="{% static "js/chosen.proto.js" %}"></script>
+
+<script type="text/javascript">
+
+    $(document).ready(function(){
+        
+        $("#databaseId").chosen()
+    });
+
+</script>
+
+{% endblock %}
+
+{% block content %}
+<form enctype="multipart/form-data" action="" method="post" id="user_form">
+
+<fieldset class="module aligned">
+    <h2>User info</h2>
+    <div class="form-row">
+        <label class="required" style="margin-left:15px;margin-right:45px;">Username:</label>
+        <input type="text" name="username" value="{{username}}" readonly="readonly" disabled="disabled" />
+        </br>
+        <table>
+        <tr>
+            <th width="115px"><p>请选择数据库:</p></th>
+            <td>
+                <select id="databaseId"  name="databaseId"" multiple class="chosen-select-no-results"  
+                style="width:200px;">
+                {% for item in dblist %}
+                    <option value="{{ item.id }}">{{item.Upload_DBName}}</option>
+                {% endfor  %}
+                </select>
+                <span id="databaseNotExistInReviewHint" style='color:red;'></span>
+            </td>            
+        </tr>
+        </table>                
+    </div>
+</fieldset>
+
+<div class="submit-row">
+    <input type="submit" value="Save" class="default" name="_save" />
+    <input type="reset" value="Reset" class="reset" name="_reset" />
+</div>
+
+</form>
+{% endblock %}

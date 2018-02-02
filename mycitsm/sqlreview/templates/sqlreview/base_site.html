@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% load i18n static %}
+{% load url from future %}
+
+{% block title %}{{ title }} | {% trans 'MySQL Tools' %}{% endblock %}
+
+{% block extrastyle %}{{ block.super }}<link rel="stylesheet" type="text/css" href="{% static "css/menu.css" %}" />{% endblock %}
+
+{% block branding %}
+<h1 id="site-name">{% trans 'MySQL Tools' %}</h1>
+{% endblock %}
+
+{% block nav-global %}
+<div id="nav-menu">
+<div class="menu">
+<ul>
+<li><a href="{% url 'mycitsm.views.admin' %}">后台管理</a>
+    <ul>
+    <li><a href="{% url 'mycitsm.views.showuser' %}">用户管理</a></li>
+    <li><a href="{% url 'mycitsm.views.showgroup' %}">组管理</a></li>
+    <li><a href="{% url 'mycitsm.views.showperm' %}">权限管理</a></li>
+    </ul>
+</li>
+<li><a href="{% url 'mycitsm.views.dbobjectapply' %}">上传发布</a>
+    <ul>
+    <li><a href="{% url 'mycitsm.views.newrelease' %}">新申请单</a></li>
+    <li><a href="{% url 'mycitsm.views.activerelease' %}">申请单发布</a></li>
+    <li><a href="{% url 'mycitsm.views.finishedrelease' %}">历史申请单</a></li>
+    </ul>
+</li>
+<li><a href="{% url 'mycitsm.views.dbmgmt' %}">DB管理</a>
+    <ul>
+    <li><a href="{% url 'mycitsm.views.dblist' %}">数据库列表</a></li>
+    <li><a href="{% url 'mycitsm.views.newdbapply' %}">数据库申请</a></li>
+    <li><a href="{% url 'mycitsm.views.dev_test_user' %}">数据库用户</a></li>
+    <li><a href="{% url 'mycitsm.views.dbcapacitymonitor' %}">DB容量监控</a></li>
+    </ul>
+</li>
+<li><a href="{% url 'mycitsm.views.serveradmin' %}">服务器管理</a>
+    <ul>
+    <li><a href="{% url 'mycitsm.views.dbserverinfo' %}">MySQL</a></li>
+    <li><a href="{% url 'mycitsm.views.mongodbserverinfo' %}">MongoDB</a></li>
+    <li><a href="{% url 'mycitsm.views.slowlogmonitor' %}">慢日志监控</a></li>
+    
+    </ul>
+</li>
+
+<li><a href="{% url 'sqlreview.views.sqlCheck' %}">SQL审核</a>
+    <ul>
+    <li><a href="{% url 'sqlreview.views.specificationCheck' %}">自助规范审核</a></li>
+    <li><a href="{% url 'sqlreview.views.performanceCheck' %}">自助性能审核</a></li>
+    <li><a href="{% url 'sqlreview.views.autoSqlCheck' %}">提交审核申请</a></li>
+    </ul>
+</li>
+
+
+<li style="float:right;"><a>Q&A</a>
+    <ul>
+        <li><a onclick="window.open('http://conf.ctripcorp.com/pages/viewpage.action?pageId=46173695','常见问题')">常见问题</a></li>
+        <li><a onclick="window.open('http://conf.ctripcorp.com/pages/viewpage.action?pageId=16589732','开发规范')">MySQL开发规范</a></li>
+        <li><a onclick="window.open('http://conf.ctripcorp.com/pages/viewpage.action?pageId=53620422','自动审核')">SQL自动审核手册</a></li>       
+    </ul>
+</li>
+
+</ul>
+
+<br class="clear" />
+
+</div>
+</div>
+{% endblock %}

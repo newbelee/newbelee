@@ -1,0 +1,61 @@
+{% extends "base_site.html" %}
+{% load i18n static %}
+{% load url from future %}
+
+{% block extrastyle %}{{ block.super }}<link rel="stylesheet" type="text/css" href="{% static "css/table.css" %}" />{% endblock %}
+
+{% block content %}
+<div class="module">
+<div id="toolbar">
+<form action="" method="get">
+    <label for="searchbar"><img src="/static/img/icon_searchbox.png" alt="Search" /></label>
+    <input type="text" size="40" name="q" value="{{ groupname|default:"" }}" id="searchbar" />
+    <input type="submit" value="Search Group" />
+</form>
+</div>
+</div>
+
+<div class="style">
+<table width="100%" border="1">
+<thead>
+<tr>
+    <th>Groupname</th>
+    <th>Description</th>
+    <th>Has Permission</th>
+</tr>
+</thead>
+
+{% for row in rows %}
+<tr>
+    <td><a href="group={{row.name}}">{{row.name}}</a></td>
+    <td>{{row.description}}</td>
+    <td>
+        {% if row.has_perm == 1 %}<img src="/static/img/icon-yes.gif"/>{% else %}<img src="/static/img/icon-no.gif" />{% endif %}
+    </td>
+</tr>
+{% endfor %}
+
+</table>
+</div>
+
+<div class="paginator">
+    <span class="step-links">
+        <a href="?q={{ groupname|default:"" }}&page=1">first&lt;&lt;</a>
+
+        {% if rows.has_previous %}
+            <a href="?q={{ groupname|default:"" }}&page={{ rows.previous_page_number }}">previous</a>
+        {% endif %}
+
+        <span class="current">
+            Page {{ rows.number }} of {{ rows.paginator.num_pages }}.
+        </span>
+
+        {% if rows.has_next %}
+            <a href="?q={{ groupname|default:"" }}&page={{ rows.next_page_number }}">next</a>
+        {% endif %}
+
+        <a href="?q={{ groupname|default:"" }}&page={{ rows.paginator.num_pages }}">&gt;&gt;last</a>
+    </span>
+</div>
+
+{% endblock %}

@@ -1,0 +1,86 @@
+{% extends "base_site.html" %}
+{% load i18n static %}
+{% load url from future %}
+
+{% block extrastyle %}{{ block.super }}<link rel="stylesheet" type="text/css" href="{% static "css/table.css" %}" />{% endblock %}
+
+{% block content %}
+<div class="module">
+<div id="toolbar">
+<form action="" method="get">
+    <label style="font-weight:bold;margin-left:5px;">数据库应用类型:</label>
+    <select name="dbtype" style="margin-left:5px;">
+        <option value="mysql" {% if dbtype = "mysql" %}selected="selected" {% endif %}>MySQL</option>
+        <option value="mongodb" {% if dbtype = "mongodb" %}selected=="selected" {% endif %}>MongoDB</option>
+        <option value="pgsql" {% if dbtype = "pgsql" %}selected="selected" {% endif %}>PostgreSQL</option>
+    </select>
+    <label style="margin-left:5px;" for="searchbar"><img src="/static/img/icon_searchbox.png" alt="Search" /></label>
+    <input type="text" size="30" name="q" value="{{ keyword|default:"" }}" id="searchbar" />
+    <input type="submit" value="Search Server" />
+</form>
+</div>
+</div>
+
+<div class="style">
+<table width="100%" border="1">
+<thead>
+<tr>
+    <th>主机名</th>
+    <th>DNS</th>
+    <th>环境</th>
+    <th>服务器状态</th>
+    <th>复制状态</th>
+    <th>性能计数器状态</th>
+</tr>
+</thead>
+
+{% for row in rows %}
+<tr>
+    <td><a href="dbtype={{dbtype}}&host={{row.HostName}}">{{row.HostName}}</a></td>
+    <td>{{row.DNS}}</td>
+    <td>{{row.Environment}}</td>
+    <td>
+        {% if row.ServerStatus != "-" %}<a href="serverstatus/dbtype={{dbtype}}&host={{row.HostName}}" 
+        {% if row.ServerStatus == "Critical" %} style="color:red;" {% endif %} 
+        {% if row.ServerStatus == "Fair" %} style="color:darkorange;" {% endif %} 
+        {% if row.ServerStatus == "Good" %} style="color:green;" {% endif %}>{% endif %}{{row.ServerStatus}}{% if row.ServerStatus != "-" %}</a>{% endif %}
+    </td>
+    <td>
+        {% if row.SlaveStatus != "-" %}<a href="slavestatus/dbtype={{dbtype}}&host={{row.HostName}}"
+        {% if row.SlaveStatus == "Critical" %} style="color:red;" {% endif %} 
+        {% if row.SlaveStatus == "Fair" %} style="color:darkorange;" {% endif %} 
+        {% if row.SlaveStatus == "Good" %} style="color:green;" {% endif %}>{% endif %}{{row.SlaveStatus}}{% if row.SlaveStatus != "-" %}</a>{% endif %}
+    </td>
+    <td>
+        {% if row.PerfStatus != "-" and row.PerfStatus != "No Recent Data" %}<a href="perfstatus/dbtype={{dbtype}}&host={{row.HostName}}"
+        {% if row.PerfStatus == "Critical" %} style="color:red;" {% endif %} 
+        {% if row.PerfStatus == "Fair" %} style="color:darkorange;" {% endif %} 
+        {% if row.PerfStatus == "Good" %} style="color:green;" {% endif %}>{% endif %}{{row.PerfStatus}}{% if row.PerfStatus != "-" and row.PerfStatus != "No Recent Data" %}</a>{% endif %}
+    </td>
+</tr>
+{% endfor %}
+
+</table>
+</div>
+
+<div class="paginator">
+    <span class="step-links">
+        <a href="?dbtype={{ dbtype }}&q={{ keyword|default:"" }}&page=1">first&lt;&lt;</a>
+
+        {% if rows.has_previous %}
+            <a href="?dbtype={{ dbtype }}&q={{ keyword|default:"" }}&page={{ rows.previous_page_number }}">previous</a>
+        {% endif %}
+
+        <span class="current">
+            Page {{ rows.number }} of {{ rows.paginator.num_pages }}.
+        </span>
+
+        {% if rows.has_next %}
+            <a href="?dbtype={{ dbtype }}&q={{ keyword|default:"" }}&page={{ rows.next_page_number }}">next</a>
+        {% endif %}
+
+        <a href="?dbtype={{ dbtype }}&q={{ keyword|default:"" }}&page={{ rows.paginator.num_pages }}">&gt;&gt;last</a>
+    </span>
+</div>
+
+{% endblock %}

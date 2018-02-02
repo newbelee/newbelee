@@ -1,0 +1,122 @@
+{% extends "base_site.html" %}
+{% load i18n static %}
+{% load url from future %}
+
+{% block extrastyle %}{{ block.super }}
+<link rel="stylesheet" type="text/css" href="{% static "css/table.css" %}" />
+<link rel="stylesheet" type="text/css" href="{% static "css/base.css" %}" />
+<link rel="stylesheet" type="text/css" href="{% static "css/menu.css" %}" />
+<link rel="stylesheet" type="text/css" href="{% static "css/table.css" %}" />
+
+<link rel="stylesheet" type="text/css" href="{% static "css/jquery-ui.css" %}" />
+
+<script type="text/javascript" src="{% static "js/jquery-1.10.2.js" %}"></script>
+<script type="text/javascript" src="{% static "js/jquery-ui.js" %}"></script>
+
+<script type="text/javascript">
+$(document).ready(function(){
+    $( "#dialog" ).dialog({
+      autoOpen: false,
+      resizable: false,
+      width:320,
+      modal: true,
+      //title:"重置密码",
+      buttons: {
+        "确认": function() {
+            if($("#pwd").val() != $("#pwd2").val())
+            {
+                alert("两次密码输入不一致");
+            }
+            m_username=$(this).dialog( "option", "title" ).split("-")[1];
+
+            data={"pwd":$("#pwd").val(),"user":m_username};
+            $.ajax({
+                type:'POST',
+                url:"{% url 'mycitsm.views.setpwd' %}",
+                data:data,
+                success:function(data){
+                    alert(data);
+                    self.location="/admin/user/";
+                }
+            });
+
+        },
+        "取消": function() {
+            $( this ).dialog( "close" );
+        }
+      }
+    });
+});
+function setpwd(username) {
+    $( "#dialog" ).dialog( "option", "title", "重置密码-"+username );
+    $( "#dialog" ).dialog( "open");
+};
+</script>
+
+{% endblock %}
+
+{% block content %}
+<div class="module">
+<div id="toolbar">
+<form action="" method="get">
+    <label for="searchbar"><img src="/static/img/icon_searchbox.png" alt="Search" /></label>
+    <input type="text" size="40" name="q" value="{{ username|default:"" }}" id="searchbar" />
+    <input type="submit" value="Search User" />
+</form>
+</div>
+</div>
+
+<div class="style">
+<table width="100%" border="1">
+<thead>
+<tr>
+    <th>Username</th>
+    <th>Name</th>
+    <th>Email Address</th>
+    <th>Last Login</th>
+    <th>Super User</th>
+    <th>操作</th>
+</tr>
+</thead>
+
+{% for row in rows %}
+<tr>
+    <td><a href="user={{row.username}}">{{row.username}}</a></td>
+    <td>{{row.name}}</td>
+    <td>{{row.email}}</td>
+    <td>{{row.last_login|date:"Y-m-d H:i:s"}}</td>
+    <td>
+        {% if row.is_superuser == 1 %}<img src="/static/img/icon-yes.gif"/>{% else %}<img src="/static/img/icon-no.gif" />{% endif %}
+    </td>
+    <td><a href="#" id="setpwd" onclick="setpwd('{{row.username}}')">重置密码</a></td>
+</tr>
+{% endfor %}
+
+</table>
+</div>
+
+<div class="paginator">
+    <span class="step-links">
+        <a href="?q={{ username|default:"" }}&page=1">first&lt;&lt;</a>
+
+        {% if rows.has_previous %}
+            <a href="?q={{ username|default:"" }}&page={{ rows.previous_page_number }}">previous</a>
+        {% endif %}
+
+        <span class="current">
+            Page {{ rows.number }} of {{ rows.paginator.num_pages }}.
+        </span>
+
+        {% if rows.has_next %}
+            <a href="?q={{ username|default:"" }}&page={{ rows.next_page_number }}">next</a>
+        {% endif %}
+
+        <a href="?q={{ username|default:"" }}&page={{ rows.paginator.num_pages }}">&gt;&gt;last</a>
+    </span>
+</div>
+<div id="dialog" title="基本的对话框">
+  <lable style="margin-right:40px;">密码</lable><input type="password" name="pwd" id="pwd" value="" />
+  <br>
+  <lable style="margin-right:14px;">确认密码</lable><input type="password" name="pwd2" id="pwd2" value="" />
+</div>
+{% endblock %}

@@ -1,0 +1,174 @@
+{% extends "base_site.html" %}
+{% load i18n static %}
+{% load url from future %}
+{% block extrastyle %}
+    {{ block.super }}
+    <meta http-equiv="Content-type" content="text/html; charset=us-ascii">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+
+    <title>DataTables example - Zero configuration</title>
+    <link rel="alternate" type="application/rss+xml" title="RSS 2.0" href="http://www.datatables.net/rss.xml">
+    <link rel="stylesheet" type="text/css" href="/static/installinfo/css/jquery.dataTables.css">
+    <link href="/static/installinfo/css/jquery-ui.css" rel="stylesheet">
+
+    <script language="javascript" src="/static/installinfo/js/jquery-1.11.1.min.js"></script>
+    <script language="javascript" src="/static/installinfo/js/jquery.dataTables.min.js"></script>
+    <script type="text/javascript" class="init">
+        $(document).ready(function() {
+            //$('#demo').html( '<table cellpadding="0" cellspacing="0" border="0" class="display" id="example"></table>' );
+            $('#example1').dataTable({
+               // "dom": '<"top"i>rt<"bottom"flp><"clear">',
+				//"data": dataSet,
+                //"ajax": '/templates/ajax/data/arrays.txt'
+                //"jQueryUI":true,
+                //"scrollX": true,
+                //"scrollY":200,
+                //"scrollCollapse": true,
+                //"filter":false,
+				"paging":         true,
+                //"stateSave": true,              //保存表格的选择状态
+                // "pagingType": "full_numbers"   //显示分页栏的样子simple  simple_numbers full full_numbers
+                //"paging":   true,             //分记录显示
+                "ordering": false,             //排序
+                "info":     false,             //最后的踪迹
+                //"order": [[ 3, "desc" ]],     //设定排序的列
+                //"columnDefs": [ {"targets":0,"orderData": [ 0, 1 ]}, {targets: [ 1 ],orderData: [ 1,0]}, {targets: [ 4 ],orderData: [ 4, 0 ]}, ],                
+            });
+
+           
+        } );
+		function reintall(aa){
+			var se=confirm("是否已经解决好错误，并期望继续开始安装？");
+			if(se==true)
+			{
+				data = {
+				id: aa
+				}
+				$.ajax(
+				{
+				type:'POST',
+				async:false,
+				url:"/installinfo/reinstall/",
+				data:data,
+				success:function(){
+					self.location='/installinfo/listinfo/';
+				}
+				});
+			}
+			else
+			{
+			}
+		}
+
+		function reintallrep(aa){
+            var se=confirm("是否已经解决好错误，并期望继续开始安装？");
+            if(se==true)
+            {
+            	data = {
+                id: aa
+                }
+                $.ajax(
+                {
+				async:false,
+                type:'POST',
+                url:"/installinfo/reinstallrep/",
+                data:data,
+                success:function(){
+					self.location='/installinfo/listinfo/';
+				}
+                });
+			}
+            else
+            {
+            }
+		}
+        function applydnsfunc(){
+            self.location='{% url 'mycitsm.views.dnsapply' %}';
+        }	
+        function reintallcluster(aa){
+            var se=confirm("是否已经解决好错误，并期望继续开始安装？");
+            if(se==true)
+            {
+            	data = {
+                id: aa
+                }
+                $.ajax(
+                {
+				async:false,
+                type:'POST',
+                url:"/installinfo/reinstallcluster/",
+                data:data,
+                success:function(){
+					self.location='/installinfo/listinfo/';
+				}
+                });
+			}
+            else
+            {
+            }
+		}
+    </script>
+{% endblock %}
+
+{% block content %}
+<div><button type="button" id="applydns" onclick="applydnsfunc()">返回新域名申请</button></div>
+<div id="tabs">
+    <div id="tabs-1">
+        <div class="colM">
+            
+            <div class="module"><h2 style="text-align:center;font-size:15px;">测试环境DNS申请记录</h2></div>
+            <div class="style">    
+                <table id="example1" class="display" cellspacing="0" width="100%">
+                <thead>
+                    <tr>
+                        <th>id</th>
+                        <th>Operation</th>
+                        <th>Nodename</th>
+                        <th>Zone</th>
+                        <th>RRType</th>
+                        <th>Target</th>
+                        <th>New RRType</th>
+                        <th>New Target</th>
+                        <th>status</th>
+                        <th>apply_user</th>
+                        <th>modify_time</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in rows %}
+                        <tr>
+                            <td>{{item.id}}</td>
+                            <td>{{item.operation}}</td>
+                            <td>{{item.nodename}}</td>
+                            <td>{{item.zone}}</td>
+                            <td>{{item.rrtype}}</td>
+                            <td>{{item.target}}</td>
+                            <td>{{item.newrrtype}}</td>
+                            <td>{{item.newtarget}}</td>
+                            
+                            <td><p {% if item.status == 'fail'%}style="color:red"{% endif %}>{{item.status}}</p></td>
+                            
+                            <td>{{item.apply_user}}</td>
+                            <td>{{item.modify_time}}</td>
+                         </tr>
+                    {% endfor %}
+                </tbody>         
+                </table>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+ 
+<script src="/static/installinfo/js/jquery-ui.js"></script>
+<script type="text/javascript">
+    $( "#tabs" ).tabs();
+
+</script>
+
+{% endblock %}
+
+
+
+

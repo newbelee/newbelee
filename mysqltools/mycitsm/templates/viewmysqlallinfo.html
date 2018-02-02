@@ -1,0 +1,591 @@
+{% extends "base_site.html" %}
+{% load i18n static %}
+{% load url from future %}
+
+{% block extrastyle %}{{ block.super }}
+
+    <link rel="stylesheet" type="text/css" href="{% static "css/forms.css" %}"/>
+    <link rel="stylesheet" type="text/css" href="{% static "css/table2.css" %}"/>
+    <link rel="stylesheet" type="text/css" href="{% static "css/jquery-ui-1.10.4.custom.css" %}" />
+    <link rel="stylesheet" type="text/css" href="{% static "css/jquery-ui.css" %}" />
+    <script type="text/javascript" src="{% static "js/jquery-1.10.2.js" %}"></script>
+    <script type="text/javascript" src="{% static "js/jquery-ui.js" %}"></script>
+{% endblock %}
+{% block extrahead %}
+<script>
+  $(function() {
+  $( "#dialogmysqlbin" ).dialog({
+  autoOpen: false,
+  maxHeight: 600,
+  maxWidth: 550,
+  minHeight:300,
+  minWidth:550,
+  modal: true,
+  show: {
+  //effect: "blind",
+  //duration: 500
+  }
+  });
+  $( "#openermysqlbin" ).click(function() {
+  $( "#dialogmysqlbin" ).dialog( "open" );
+  });
+   
+
+});
+ </script>
+<script>
+  $(function() {
+  $( "#dialogmysqlallxtra" ).dialog({
+  autoOpen: false,
+  maxHeight: 600,
+  maxWidth: 550,
+  minHeight:300,
+  minWidth:550,
+  modal: true,
+  show: {
+  //effect: "blind",
+  //duration: 500
+  }
+  });
+  $( "#openermysqlallxtra" ).click(function() {
+  $( "#dialogmysqlallxtra" ).dialog( "open" );
+  });
+   
+
+});
+ </script>
+<script>
+  $(function() {
+  $( "#dialogmysqlalllvm" ).dialog({
+  autoOpen: false,
+  maxHeight: 600,
+  maxWidth: 550,
+  minHeight:300,
+  minWidth:550,
+  modal: true,
+  show: {
+  //effect: "blind",
+  //duration: 500
+  }
+  });
+  $( "#openermysqlalllvm" ).click(function() {
+  $( "#dialogmysqlalllvm" ).dialog( "open" );
+  });
+   
+
+});
+ </script>
+
+<script>
+  $(function() {
+  $( "#dialogmysqlreview" ).dialog({
+  autoOpen: false,
+  maxHeight: 600,
+  maxWidth: 550,
+  minHeight:300,
+  minWidth:550,
+  modal: true,
+  show: {
+  //effect: "blind",
+  //duration: 500
+  }
+  });
+  $( "#openermysqlreview" ).click(function() {
+  $( "#dialogmysqlreview" ).dialog( "open" );
+  });
+   
+
+});
+ </script>
+
+
+<script>
+    $("#mysqlbin").ready(function(){
+        $("#mysqlbin").hide();
+    });
+    function showmysqlbin(){
+        $("#mysqlbin").toggle();
+    }
+
+    </script>
+<script>
+    $("#mysqlallxtra").ready(function(){
+        $("#mysqlallxtra").hide();
+    });
+    function showmysqlallxtra(){
+        $("#mysqlallxtra").toggle();
+    }
+
+    </script>
+
+<script>
+    $("#mysqlalllvm").ready(function(){
+        $("#mysqlalllvm").hide();
+    });
+    function showmysqlalllvm(){
+        $("#mysqlalllvm").toggle();
+    }
+
+    </script>
+<script>
+    $("#mysqlreview").ready(function(){
+        $("#mysqlreview").hide();
+    });
+    function showmysqlreview(){
+        $("#mysqlreview").toggle();
+    }
+
+    </script>
+
+<script>
+    $("#lvmspecialconfig").ready(function(){
+        $("#lvmspecialconfig").hide();
+    });
+    function showspecialconfigon(){
+        $("#lvmspecialconfig").show();
+    }
+    function showspecialconfigoff(){
+        $("#lvmspecialconfig").hide();
+    }
+
+    </script>
+
+<script>
+    $("#mysqlallxtraoff").ready(function(){
+        $("#mysqlallxtraoff").hide();
+    });
+    function showmysqlallxtracronon(){
+        $("#mysqlallxtrachange").show();
+        $("#mysqlallxtraoff").hide();
+    }
+    function showmysqlallxtracronoff(){
+        $("#mysqlallxtrachange").hide();
+        $("#mysqlallxtraoff").show();
+    }
+
+    </script>
+
+
+
+<script>
+  $(function () {
+    $( "#datepicker" ).datepicker();
+  });
+  </script>
+
+
+{% endblock %}
+
+{% block content %}
+
+<fieldset class="module aligned">
+    <h2>MySQL二进制日志备份信息</h2>
+    <div class="form-row">
+        <input type="button" onclick="showmysqlbin()" value="查看历史备份信息" />
+    </div>
+     <div class="form-row">
+        <label >Cron 状态:</label>
+        <input type="text" name="cron_status" maxlength="20" value=" {% if mysqlbin_cron == 1 %} ON {% else %} OFF  {% endif %}"/>
+        <input id="openermysqlbin" type="button" value="配置"/>
+         {% if mysqlbin_cron == 0 %}
+            <div class="form-row">
+                <p>{{mysqlbinoprationinfo.0}} 于 {{mysqlbinoprationinfo.1}} 关闭该服务器MySQL binlog 备份</p>
+                <p>关闭原因:     {{mysqlbinoprationinfo.4}}</p>
+                <p>预计开启时间: {{mysqlbinoprationinfo.3}}</p>
+            </div>
+        {% endif%}
+
+        <div id="dialogmysqlbin" title="MySQL binlog Cron调度配置">
+                 
+                <fieldset>
+                <form enctype="multipart/form-data" action="" method="post" id="mysqlbin">
+                    <div class="form-row">
+                        <label>开:<input  type="radio" {% if mysqlbin_cron == 1 %} checked="checked" {% endif %} name="bincronswitch" value="on"/>
+                    关:<input  type="radio" {% if mysqlbin_cron == 0 %} checked="checked" {% endif %} name="bincronswitch" value="off" /></label>
+                    </div>
+                    <div class="form-row">
+                    <label>预估开启时间:</label>
+                        <input type="text" id="datepicker" name="bincron_datepicker" value="">
+                    </div>
+                    <div class="form-row">
+                    <label for="reason">关闭原因:</label>
+                    <textarea onpropertychange="if(value.length>100) value=value.substr(0,100)" cols="50" rows="5" name="bincron_closedescription" ></textarea>
+                    </div>
+                    <!-- Allow form submission with keyboard without duplicating the dialog button -->
+                    <div class="submit-row">
+                        <input type="submit" value="Save" class="default" name="_save" />
+                        <input type="reset" value="Reset" class="reset" name="_reset" />
+                    </div>
+                 </form>
+                </fieldset>
+        </div>
+
+ 
+    </div>
+    <div class="form-row">
+        <label>Cron 最近调用:</label> 
+        <input type="text" name="cron_lasttime" maxlength="20" value="{{mysqlbincron_lasttime}}" />
+    </div>
+</fieldset>
+
+<fieldset class="module aligned" id="mysqlbin">
+    <h2>MySQL 日志备份历史记录</h2>
+    <table style="color:gray;" width="100%">
+    <thead>
+    <tr>
+        <th>FileName</th>
+        <th>FileSize</th>
+        <th>StartTime</th>
+        <th>EndTime</th>
+        <th>BackupTime(s)</th>
+        <th>TarTime(s)</th>
+        <th>FtpTime(s)</th>
+        <th>Retry</th>
+    </tr>
+    </thead>
+    {% for mysqlbin_history_row in mysqlbin_history_rows %}
+    <tr>
+        <td>{{mysqlbin_history_row.filename}}</td>
+        <td>{{mysqlbin_history_row.filesize}}</td>
+        <td>{{mysqlbin_history_row.backup_start_time}}</td>
+        <td>{{mysqlbin_history_row.backup_end_time}}</td>
+        <td>{{mysqlbin_history_row.backuptime}}</td>
+        <td>{{mysqlbin_history_row.tartime}}</td>
+        <td>{{mysqlbin_history_row.ftptime}}</td>
+        <td>{{mysqlbin_history_row.retry}}</td>
+    </tr>
+    {% endfor %}
+    </table>
+</fieldset>
+
+<fieldset class="module aligned">
+ {% if backuptype == "xtrabackup"%}
+
+    <h2>MySQL Xtrabackup全备信息</h2>
+    <div class="form-row">
+        <input type="button" onclick="showmysqlallxtra()" value="查看历史备份信息" />
+    </div>
+    <div class="form-row">
+        <label >Cron 状态:</label>
+        <input type="text" name="cron_status" maxlength="20" value=" {% if mysqlall_cron == 1 %} ON {% else %} OFF  {% endif %}"/>
+        <input id="openermysqlallxtra" type="button" value="配置"/>
+        <div id="dialogmysqlallxtra" title="MySQL Xtrabackup 全备Cron调度配置">
+                    
+                    <fieldset>
+                    <form enctype="multipart/form-data" action="" method="post" id="mysqlallxtra">
+                    <div class="form-row">
+                        <label>开:<input  type="radio" onclick="showmysqlallxtracronon()" {% if mysqlall_cron == 1 %} checked="checked" {% endif %} name="mysqlallxtracronswitch" value="1" />
+                    关:<input  type="radio" onclick="showmysqlallxtracronoff()" {% if mysqlall_cron == 0 %} checked="checked" {% endif %} name="mysqlallxtracronswitch" value="0" /></label>
+                    </div>
+                    {% if mysqlall_cron == 1 %}
+                        
+                        <div class="form-row" id="mysqlallxtrachange">
+                            <label>调度时间:</label>
+                                <select name="mysqlallxtracron_starttime" id="mysqlallxtracron_starttime">
+                                    <option>19 点</option>
+                                    <option selected="selected">1 点</option>
+                                    <option>21 点</option>
+
+                                </select>
+
+                        </div>
+                    <div class="form-row" id="mysqlallxtraoff">
+                    <label for="reason">关闭原因:</label>
+                    <textarea onpropertychange="if(value.length>100) value=value.substr(0,100)" cols="50" rows="5" name="mysqlallxtracron_closedescription" ></textarea>
+                    </div>
+                    <!-- Allow form submission with keyboard without duplicating the dialog button -->
+                    {% endif %}
+
+                    <div class="submit-row">
+                        <input type="submit" value="Save" class="default" name="_save" />
+                        <input type="reset" value="Reset" class="reset" name="_reset" />
+                    </div>
+                    
+                    </form>
+                 </fieldset>
+          </div>
+
+     </div>
+     <div class="form-row">
+            <label>Cron 最近调用:</label> 
+            <input type="text" name="cron_lasttime" maxlength="20" value="{{mysqlallcron_lasttime}}" />
+     </div>
+
+ {% else %}
+    <h2>MySQL Xtrabackup全备信息</h2>
+    <div class="form-row">
+        <label >Cron 状态:</label>
+        <input type="text" name="cron_status" maxlength="20" value="OFF"/>
+        <input id="openermysqlallxtra" type="button" value="配置"/>
+        <div id="dialogmysqlallxtra" title="MySQL Xtrabackup 全备Cron调度配置">
+        <fieldset>
+                    <form enctype="multipart/form-data" action="" method="post" id="mysqlallxtra">
+                    <div class="form-row">
+                        <label>开:<input  type="radio" name="mysqlallxtracronswitch" value="on" />
+                    关:<input  type="radio" checked="checked" name="mysqlallxtracronswitch" value="off" /></label>
+                    </div>
+                    <div class="form-row">
+                    <label>调度时间:</label>
+                    <select name="mysqlallxtracron_starttime" id="mysqlallxtracron_starttime">
+                            <option>19 点</option>
+                            <option selected="selected">1 点</option>
+                            <option>21 点</option>
+
+                        </select>
+
+                    </div>
+
+                    <div class="submit-row">
+                        <input type="submit" value="Save" class="default" name="_save" />
+                        <input type="reset" value="Reset" class="reset" name="_reset" />
+                    </div>
+
+                     </form>
+                 </fieldset>
+          </div>
+
+            
+    </div>
+ {% endif %}
+</fieldset>
+
+<fieldset class="module aligned" id="mysqlallxtra">
+    <h2>MySQL 全备份历史记录</h2>
+    <table style="color:gray;" width="100%">
+    <thead>
+    <tr>
+        <th>FileName</th>
+        <th>FileSize</th>
+        <th>StartTime</th>
+        <th>EndTime</th>
+        <th>BackupTime(s)</th>
+        <th>TarTime(s)</th>
+        <th>FtpTime(s)</th>
+        <th>Retry</th>
+    </tr>
+    </thead>
+    {% for mysqlall_history_row in mysqlall_history_rows %}
+    <tr>
+        <td>{{mysqlall_history_row.filename}}</td>
+        <td>{{mysqlall_history_row.filesize}}</td>
+        <td>{{mysqlall_history_row.backup_start_time}}</td>
+        <td>{{mysqlall_history_row.backup_end_time}}</td>
+        <td>{{mysqlall_history_row.backuptime}}</td>
+        <td>{{mysqlall_history_row.tartime}}</td>
+        <td>{{mysqlall_history_row.ftptime}}</td>
+        <td>{{mysqlall_history_row.retry}}</td>
+    </tr>
+    {% endfor %}
+    </table>
+</fieldset>
+
+
+<fieldset class="module aligned">
+ {% if backuptype == "LvmBackup"%}
+
+    <h2>MySQL LvmBackup全备信息</h2>
+    <div class="form-row">
+        <input type="button" onclick="showmysqlalllvm()" value="查看历史备份信息" />
+    </div>
+    <div class="form-row">
+        <label >Cron 状态:</label>
+        <input type="text" name="cron_status" maxlength="20" value=" {% if mysqlall_cron == 1 %} ON {% else %} OFF  {% endif %}"/>
+        <input type="text" name="lvm_storage" maxlength="20" value="{{storage}}"/>
+        <input id="openermysqlalllvm" type="button" value="配置"/>
+        <div id="dialogmysqlalllvm" title="MySQL Lvm 备份配置">
+        <fieldset>
+                <form enctype="multipart/form-data" action="" method="post" id="mysqlalllvm">
+                    <div class="form-row">
+                        <label>改:<input  type="radio" {% if mysqlbin_cron == 1 %} checked="checked" {% endif %} name="lvmswitch" value="on" />
+                    关:<input  type="radio"  {% if mysqlbin_cron == 0 %} checked="checked" {% endif %} name="lvmswitch" value="off" /></label>
+                    </div>
+                    
+                    <div class="form-row">
+                        <label>现备份宿主机:</label>
+                        <input type="text" name="lvm_nowstorage" maxlength="20" value="{{storage}}"/>
+                    </div>
+                    <div class="form-row">
+                       <label>Lvm备份存储主机:</label>
+                            <select name="storage_choice" id="storage_choice">
+                                {% for storageinfo in storagelist %}
+                                    <option>{{storageinfo.storageinfo}}</option>
+
+                                {% endfor %}
+                            </select>
+                    </div>
+                    
+                    <div class="form-row">
+                    <label>备份优先级:</label>
+                    <input type="text" name="lvm_priority" maxlength="20" value=""/>
+                    <label>1:优先,2:次之,3:最后,0:禁用</label>
+                    </div>
+                    <div class="submit-row">
+                        <input type="submit" value="Save" class="default" name="_save" />
+                        <input type="reset" value="Reset" class="reset" name="_reset" />
+                    </div>
+                </form>
+
+        </fieldset>
+        </div>
+        
+
+     </div>
+
+ {% else %}
+    <h2>MySQL LvmBackup全备信息</h2>
+    <div class="form-row">
+        <label >Cron 状态:</label>
+        <input type="text" name="cron_status" maxlength="20" value="OFF"/>
+        <input id="openermysqlalllvm" type="button" value="配置"/>
+        <div id="dialogmysqlalllvm" title="MySQL Lvm 备份配置">
+        <fieldset>
+            <form enctype="multipart/form-data" action="" method="post" id="mysqlalllvm">
+                    <div class="form-row">
+                        <label>目前配置状态:</label>
+                        <input type="text" name="lvm_configstatus" maxlength="20" value="off"/>
+                    </div>
+                    <div class="form-row">
+                       <label>Lvm备份存储主机:</label>
+                            <select name="storage_choice" id="storage_choice">
+                                {% for storageinfo in storagelist %}
+                                    <option>{{storageinfo.storageinfo}}</option>
+
+                                {% endfor %}
+                            </select>
+                    </div>
+                    <div class="form-row">
+                    <label>备份优先级:</label>
+                    <input type="text" name="lvm_priority" maxlength="20" value=""/>
+                    </div>
+                    <div class="form-row">
+                        <label>请手动到服务器上交换ssh key，并尝试手工rsync小文件</label>
+                    </div>
+                    <div class="submit-row">
+                        <input type="submit" value="Save" class="default" name="_save" />
+                        <input type="reset" value="Reset" class="reset" name="_reset" />
+                    </div>
+                </form>
+
+        </fieldset>
+        </div>
+
+    </div>
+ {% endif %}
+</fieldset>
+
+
+<fieldset class="module aligned" id="mysqlalllvm">
+    <h2>MySQL 全备份历史记录</h2>
+    <table style="color:gray;" width="100%">
+    <thead>
+    <tr>
+        <th>FileSize</th>
+        <th>StartTime</th>
+        <th>EndTime</th>
+        <th>LvmSnapCapacity</th>
+        <th>Error</th>
+    </tr>
+    </thead>
+    {% for mysqlall_history_row in mysqlall_history_rows %}
+    <tr>
+        <td>{{mysqlall_history_row.filesize}}</td>
+        <td>{{mysqlall_history_row.starttime}}</td>
+        <td>{{mysqlall_history_row.endtime}}</td>
+        <td>{{mysqlall_history_row.lvmsnapcapacity}}</td>
+        <td>{{mysqlall_history_row.Errorinfo}}</td>
+    </tr>
+    {% endfor %}
+    </table>
+</fieldset>
+
+<fieldset class="module aligned">
+{% if backuptype == "xtrabackup"%}
+
+    <h2>MySQL Review 环境信息</h2>
+    <div class="form-row">
+        <input type="button" onclick="showmysqlreview()" value="查看历史还原信息" />
+    </div>
+    <div class="form-row">
+        <label >数据库还原状况:</label>
+        <input type="text" name="restore_status" maxlength="20" value="{{mysqlreview_lasttimestatus}}"/>
+
+
+     </div>
+     <div class="form-row">
+        <label >Review 环境:</label>
+        <input type="text" name="" maxlength="20" value="{{reviewhostname}}"/>
+        <input type="text" name="" maxlength="20" value="{{review_serverport}}"/>
+        <input id="openermysqlreview" type="button" value="配置"/>
+        <div id="dialogmysqlreview" title="MySQL Review 配置">
+            <fieldset>
+                <form enctype="multipart/form-data" action="" method="post" id="mysqlbin">
+                <div class="form-row">
+                    <label>目前Review所在服务器:</label>
+                    <input type="text" name="reviewhostname" maxlength="20" value="{{reviewhostname}}"/>
+                    <label>无需填写<label>
+                </div>
+                <div class="form-row">
+                  <label>Review 还原机器:</label>
+                     <select name="review_choice" id="review_choice">
+                                {% for storageinfo in storagelist %}
+                                    <option>{{storageinfo.storageinfo}}</option>
+
+                                {% endfor %}
+                            </select>
+
+                </div>
+                <div class="form-row">
+                    <label>还原优先级:</label>
+                    <input type="text" name="review_priority" maxlength="20" value=""/>
+
+                </div>
+                <div class="submit-row">
+                        <input type="submit" value="Save" class="default" name="_save" />
+                        <input type="reset" value="Reset" class="reset" name="_reset" />
+                    </div>
+
+                </form>
+            </fieldset>
+        </div>
+    </div>
+{% else %}
+  {% if backuptype == "LvmBackup" %}
+    <h2>MySQL Review 环境信息</h2>
+    <div class="form-row">
+    <p>Reivew 环境即在Lvm 备份服务上</p>
+    </div>
+   {% else %}
+    <h2>MySQL Review 环境信息</h2>
+    <div class="form-row">
+    <p>不存在备份，不存在Review</p>
+    </div>
+  {% endif %}
+{% endif %}
+</fieldset>
+
+
+<fieldset class="module aligned" id="mysqlreview">
+    <h2>MySQL Review环境Restore历史记录</h2>
+    <table style="color:gray;" width="100%">
+    <thead>
+    <tr>
+        <th>FileName</th>
+        <th>FileSize</th>
+        <th>StartTime</th>
+        <th>EndTime</th>
+        <th>Error</th>
+    </tr>
+    </thead>
+    {% for mysqlreview_history_row in mysqlreview_history_rows %}
+    <tr>
+        <td>{{mysqlreview_history_row.filename}}</td>
+        <td>{{mysqlreview_history_row.filesize}}</td>
+        <td>{{mysqlreview_history_row.starttime}}</td>
+        <td>{{mysqlreview_history_row.endtime}}</td>
+        <td>{{mysqlreview_history_row.Errorinfo}}</td>
+    </tr>
+    {% endfor %}
+    </table>
+</fieldset>
+{% endblock %}
+

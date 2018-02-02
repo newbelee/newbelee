@@ -1,0 +1,46 @@
+{% extends "base_site.html" %}
+{% load i18n static %}
+{% load url from future %}
+
+{% block extrastyle %}{{ block.super }}<link rel="stylesheet" type="text/css" href="{% static "css/intro.css" %}" />{% endblock %}
+
+{% block content %}
+<div id="content">
+
+<div class="introlist refpic">
+<table width="100%">
+<caption align="center">Guide</caption>
+<tr>
+    <td><a href="{% url 'mycitsm.views.dbserverinfo' %}"><img src="/static/img/test1.png" /></a></td>
+    <td>
+        <ul>
+            <li>查看MySQL服务器基本信息</li>
+            <li>查看MySQL服务器监控状态</li>
+        </ul>
+    </td>
+</tr>
+<tr>
+    <td><a href="{% url 'mycitsm.views.mongodbserverinfo' %}"><img src="/static/img/test2.png" /></a></td>
+    <td>
+        <ul>
+            <li>查看MongoDB服务器基本信息</li>
+            <li>查看MongoDB服务器监控状态</li>
+        </ul>
+    </td>
+</tr>
+<tr>
+    <td><a href="{% url 'mycitsm.views.slowlogmonitor' %}"><img src="/static/img/list_menu_slowlogmonitor.png" /></a></td>
+    <td>
+        <ul>
+            <li>查看MySQL数据库慢日志信息</li>
+            <li>根据时间段查看慢日志汇总</li>
+        </ul>
+    </td>
+</tr>
+
+</table>
+</div>
+
+</div>
+
+{% endblock %}

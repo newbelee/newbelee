@@ -1,0 +1,131 @@
+body {
+    overflow-y:scroll;
+}
+
+#toolbar {
+    background: url("../img/nav-bg.gif") repeat-x scroll left top #e1e1e1;
+    border-bottom: 1px solid #ddd;
+    color: #666;
+    padding: 3px;
+}
+
+#topNSlowSqlContainer div {
+    width:23%;        
+    float:left;
+    border:1px solid #ddd;
+    margin:5px;
+    padding:5px;
+    display: none;           
+}
+
+#topNSlowSqlContainer div table.content{
+    width:100%;
+}
+
+#topNSlowSqlContainer div table.content thead td{
+    border:0;
+    font-style: italic;
+    font-weight: bold;
+}
+
+#topNSlowSqlContainer div table.content tr td:first-child{
+    width:85%;
+}
+
+#topNSlowSqlContainer div table.content tbody tr:hover{ 
+    background: #dadada;
+}
+
+tr.zeroclipboard-is-hover { 
+    background: #dadada;
+}
+
+#topNSlowSqlContainer div table.content tbody td div{
+    width:100%;
+    margin:0;
+    padding:0;
+    border:0;
+    word-break:break-all;
+    display: inline-block; 
+    font-size: 11px;     
+}
+
+#topNSlowSqlContainer div table.content tbody td div:first-child{       
+    height:14px;
+    overflow:hidden; 
+}
+
+.ui-icon{
+   opacity: 0.6;
+   filter: alpha(opacity=60); 
+} 
+
+.ui-icon:hover{
+    opacity: 1.0;
+    filter: alpha(opacity=100);
+}
+
+.ui-icon-alert{
+    float:left;
+    margin-right: 6px; 
+    margin-top: 1px;
+    opacity: 1.0;
+}
+
+.ui-tooltip {
+    font-style: italic;
+    font-size: 10px;
+    border: 1px solid white;
+    background: #ccc;
+}
+
+.evenRow {
+}
+
+.oddRow {
+    background-color: #f9f9f9;
+} 
+
+.trOnDraw { 
+    background: #dadada;
+}
+
+form label {
+    font-weight:bold;
+    margin-left:5px;
+}
+
+
+input:hover{
+    border:1px solid #999999;   
+}
+
+#topNSlowSqlContainer div table.search{
+    width: 100%;
+}
+
+
+input.searchInput {
+    width:98%; 
+    border-top:0;
+    background:transparent;
+   
+}
+
+.menu li{
+    z-index: 9;
+}
+
+.ui-progressbar {
+    position: relative;
+    height:20px;
+    margin: 0 auto;
+    top:30px;
+  }
+
+.progress-label {
+    position: absolute;
+    left: 45%;
+    font-weight: bold;
+    text-shadow: 1px 1px 0 #fff;
+  }

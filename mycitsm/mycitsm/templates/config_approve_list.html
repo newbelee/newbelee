@@ -1,0 +1,185 @@
+{% extends "base_site.html" %}
+{% load i18n static %}
+{% load url from future %}
+
+{% block extrastyle %}{{ block.super }}
+    <link rel="stylesheet" type="text/css" href="/static/css/jquery-ui.css" />
+    <link rel="stylesheet" type="text/css" href="/static/css/dataTables.jqueryui.css" />
+    <link rel="stylesheet" type="text/css" href="/static/css/table2.css"/>
+    <script type="text/javascript" src="/static/js/jquery-1.10.2.js"></script>
+    <script type="text/javascript" src="/static/js/jquery-ui.js"></script>
+    <script type="text/javascript" src="/static/js/jquery.dataTables.js"></script>
+    <script type="text/javascript" src="/static/js/dataTables.jqueryui.js"></script>
+
+
+
+
+{% endblock %}
+
+
+{% block extrahead %}
+    <script type="text/javascript" class="init">
+    
+        $(document).ready(function() {
+                $( ".accordion" ).accordion({
+                collapsible: true,
+                active:false
+              }); 
+            //$('#demo').html( '<table cellpadding="0" cellspacing="0" border="0" class="display" id="example"></table>' );
+            $('#example1').dataTable({
+                //"dom": '<"top"i>rt<"bottom"flp><"clear">',
+				//"data": dataSet,
+                //"ajax": '/templates/ajax/data/arrays.txt'
+                //"jQueryUI":true,
+                //"scrollX": true,
+                //"scrollY":200,
+                //"scrollCollapse": true,
+                //"filter":false,
+				"paging":   true,
+                //"stateSave": true,              //保存表格的选择状态
+                // "pagingType": "full_numbers"   //显示分页栏的样子simple  simple_numbers full full_numbers
+                //"paging":   true,             //分记录显示
+                "ordering": true,             //排序
+                "info":     true,             //最后的踪迹
+                "order": [[ 0, "desc" ]],     //设定排序的列
+                //"columnDefs": [ {"targets":0,"orderData": [ 0, 1 ]}, {targets: [ 1 ],orderData: [ 1,0]}, {targets: [ 4 ],orderData: [ 4, 0 ]}, ],                
+            });
+            $('#example2').dataTable({ 
+				//"dom": '<"top"i>rt<"bottom"flp><"clear">', 
+                //"filter":false,
+				"paging":   true,                
+                "ordering": true,             //排序
+                "info":     true,             //最后的踪迹                
+                "order": [[ 0, "desc" ]],     //设定排序的列
+            });
+            $(".dataTables_wrapper .dataTables_filter").css({"float":"left"});
+            $(".dataTables_wrapper .dataTables_length").css({"float":"right"});
+            $("table.dataTable").css({"border-collapse":"collapse"});
+            $(".ui-widget-header").css({"border":"none","background":"none"});             
+           
+        });
+
+    </script>
+    <script type="text/javascript">
+        function pass_approve(id){
+            var se=confirm("确认开通这些数据库中的特殊权限？");
+            if(se==true)
+            {
+                $.ajax(
+                {
+                type:'get',
+                async:false,
+                url:"/show_approve_list/pass_approve/",
+                data:{id:id},
+                success:function(){
+                    location.reload();
+                }
+                });
+            }
+            else
+            {
+            }
+        };
+        function refuse_approve(id){
+                $.ajax(
+                {
+                type:'get',
+                async:false,
+                url:"/show_approve_list/refuse_approve/",
+                data:{id:id},
+                success:function(){
+                    location.reload();
+                }
+                });
+        
+        };
+    </script>
+{% endblock %}
+
+
+{% block content %}
+<div id="content-main">
+<h3>待添加的额外权限是CREATE, DROP, INDEX, ALTER, CREATE TEMPORARY TABLES</h3>
+</br>
+
+    <div class="colM">
+            <div class="style">    
+                <table id="example1" class="display" cellspacing="0" width="100%">
+                    <thead>
+                        <tr>
+                            <th >ID</th>
+                            <th >申请人</th>
+                            <th >赋权帐号</th>
+                            <th >待加权限数据库</th>
+                            <th >审批人</th>
+                            <th >审批状态</th >
+                            <th >提交时间</th>
+                            {% if user_id == 'approver' or user_id == 'dba' %}
+                            <th style="vertical-align:middle; text-align:center;">是否同意</th>
+                            {% endif %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in resultpass %}
+                        <tr>
+                            <td width="50px">{{item.id}}</td>
+                            <td width="80px">{{item.asked_name}}</td>
+                            <td width="80px">{{item.user}}@'{{item.ip}}'</td>
+                            <td width="500px" style="word-break:break-all;text-align:left;"><div class="accordion"><p style="width:500px;height:11px;overflow:hidden">{{item.special_select_dblist}}</p><div><span>{{item.special_select_dblist}}</span></div></div></td>
+                            <td>{{item.approver_name}}</td>
+                            <td>待审批</td>
+                            <td>{{item.modify_time}}</td>
+                            {% if user_id == 'approver' or user_id == 'dba' %}
+                            <td><a href=#  onclick="pass_approve({{item.id}})" >通过</a>|    | <a href=#  onclick="refuse_approve({{item.id}})" >拒绝</a></td>
+                            {% endif %}
+                        </tr>
+                        {% endfor %}                        
+                    </tbody>            
+                </table>
+            </div>
+    </div>
+    <br/>
+    <br/>
+    <h1 >已完成审批列表</h1>
+    <div class="colM">
+            <div class="style">    
+                <table id="example2" class="display" cellspacing="0" width="100%">
+                    <thead>
+                        <tr>
+                            <th >ID</th>
+                            <th >申请人</th>
+                            <th >赋权帐号</th>
+                            <th >待加权限数据库</th>
+                            <th >审批人</th>
+                            <th >审批状态</th>
+                            <th >提交时间</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in resultall %}
+                        <tr>
+                            <td width="50px">{{item.id}}</td>
+                            <td width="80px">{{item.asked_name}}</td>
+                            <td width="80px">{{item.user}}@'{{item.ip}}'</td>
+                            <td width="500px" style="word-break:break-all;text-align:left;"><div class="accordion"><p style="width:500px;height:11px;overflow:hidden">{{item.special_select_dblist}}</p><div><span>{{item.special_select_dblist}}</span></div></div></td>
+                            <td>{{item.approver_name}}</td>
+                            {% if item.approve_status == 1 %}
+                            <td>通过</td>
+                            {% endif %}
+                            {% if item.approve_status == 2 %}
+                            <td><font color="#FF0000">拒绝</font></td>
+                            {% endif %}
+                            <td>{{item.modify_time}}</td>
+                        </tr>
+                        {% endfor %}                          
+                    </tbody>            
+                </table>
+            </div>
+    </div>
+</div>
+
+
+
+
+
+{% endblock %}

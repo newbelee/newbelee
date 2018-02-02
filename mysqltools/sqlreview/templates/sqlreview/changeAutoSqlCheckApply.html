@@ -1,0 +1,132 @@
+{% extends "base_site.html" %}
+{% load i18n static %}
+{% load url from future %}
+
+{% block extrastyle %}
+{{ block.super }}
+    <link rel="stylesheet" type="text/css" href="{% static "css/forms.css" %}" />
+{% endblock %}
+
+{% block extrahead %}
+{% endblock %}
+
+{% block content %}
+
+<div style="color:red;">
+    <ul>
+        <li>只有未通过审核的申请明细才可以由申请者修改</li>
+        <li>仅支持SELECT/INSERT/DELETE/UPDATE语句</li>
+        <li>每项仅能包含一条SQL语句</li>
+        <li>请确保SQL语句语法语义准确无误</li>
+        <li>请在SQL语句中提供实际的参数</li>
+    </ul>
+</div>
+
+{% if errors%}
+{% for error in errors %}
+<p class="errornote">
+    {{ error }}
+</p>
+{% endfor %}
+{% endif %}
+
+<form enctype="multipart/form-data" action="" method="post" id="apply_form">
+<fieldset class="module aligned">
+    <div class="form-row">
+        <label class="required">目标数据库:</label>
+        <select id="dbName" name="dbName" onfocus="this.defaultIndex=this.selectedIndex;" onchange="this.selectedIndex=this.defaultIndex;" >
+            {% if resultList %}
+                <option value="{{resultList.0.db_name}}">{{resultList.0.db_name}}</option>
+            {% else %}
+                {% if dbName %}
+                <option value="{{dbName}}">{{dbName}}</option>
+                {% endif %}
+            {% endif %}
+        </select>
+    </div>
+
+    <div class="form-row">
+        <div>
+        <ol>
+        {% if resultList %}
+            {% for applyDetailItem in resultList %}
+                <li>
+                    <span>SQL:</span>
+                    <textarea rows='6' cols='60' name="sql" 
+                        {% ifequal status|lower '审核未通过' %}
+                            {% ifequal user|lower applyBy|lower %}
+                            {% else %}
+                                disabled="disabled"
+                            {% endifequal%}
+                        {% else %}
+                            disabled="disabled"
+                        {% endifequal %}
+                    >{{applyDetailItem.sql}}</textarea>
+
+
+                    <span>执行频率:</span>
+                    <select name = "freq"
+                       {% ifequal status|lower '审核未通过' %}
+                            {% ifequal user|lower applyBy|lower %}
+                            {% else %}
+                                disabled="disabled"
+                            {% endifequal%}
+                        {% else %}
+                            disabled="disabled"
+                        {% endifequal %}
+                    >
+                        {% for freq in freqList %}
+                        <option value = "{{freq.id}}"  
+                            {% ifequal freq.id|lower applyDetailItem.frequency|lower %} 
+                                selected="selected" 
+                            {% endifequal %} 
+                        >
+                            {{freq.frequency}}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </li>
+            {% endfor %}
+        {% else%}
+            {% if sqlItem and freqIdItem and freqList %}
+                <li>
+                    <span>SQL:</span>
+                    <textarea rows='6' cols='60' name="sql" >{{sqlItem}}</textarea>
+
+                    <span>执行频率:</span>
+                    <select name = "freq" >
+                        {% for freq in freqList %}
+                        <option value = "{{freq.id}}"  
+                            {% ifequal freq.id|lower freqIdItem|lower %} 
+                                selected="selected" 
+                            {% endifequal %} 
+                        >
+                            {{freq.frequency}}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </li>
+            {% endif %}
+        {% endif%}
+        </ol>
+    
+    </div>
+    </div>
+</fieldset>
+
+<div class="submit-row">
+    <span>(每项只能包含一条SQL语句)</span>
+    <input type="submit" id="submitButton" value="提交" class="default" name="submit" 
+    {% ifequal status|lower '审核未通过' %}
+        {% ifequal user|lower applyBy|lower %}
+        {% else %}
+            disabled="disabled"
+        {% endifequal%}
+    {% else %}
+            disabled="disabled"
+    {% endifequal %}
+    />
+</div>
+
+</form>
+{% endblock %}

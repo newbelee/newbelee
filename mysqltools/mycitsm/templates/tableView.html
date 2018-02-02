@@ -1,0 +1,209 @@
+{% extends "base_site.html" %}
+{% load i18n static %}
+{% load url from future %}
+
+{% block extrastyle %}
+{{ block.super }} 
+
+    <!-- <link rel="alternate" type="application/rss+xml" title="RSS 2.0" href="http://www.datatables.net/rss.xml"> -->
+    <script type="text/javascript" src="{% static "js/jquery-1.10.2.js" %}"></script>
+    <link rel="stylesheet" type="text/css" href="{% static "css/jquery-ui.css" %}" />
+    <link rel="stylesheet" type="text/css" href="/static/installinfo/css/jquery.dataTables.css"> 
+    <link rel="stylesheet" type="text/css" href="{% static "css/jquery.multiselect.css" %}" />
+    <link rel="stylesheet" type="text/css" href="{% static "css/dataTables.jqueryui.css" %}" />
+    <script language="javascript" src="/static/installinfo/js/jquery.dataTables.min.js"></script>
+    <script type="text/javascript" src="{% static "js/jquery-ui.js" %}"></script>  
+    <link rel="stylesheet" type="text/css" href="{% static "css/bootstrap.min.css" %}" />
+    <link rel="stylesheet" type="text/css" href="{% static "css/style.css" %}" /> 
+
+    <script type="text/javascript" src="{% static "js/bootstrap.min.js" %}"></script>
+    <script type="text/javascript" src="{% static "js/scripts.js" %}"></script>
+    <script type="text/javascript" src="{% static "js/jquery.multiselect.js" %}"></script>
+
+
+    <script type="text/javascript">
+
+    function tableCompare(dbname,tablename){
+
+        document.getElementById("CompareLeft").innerHTML="";
+        document.getElementById("CompareRight").innerHTML="";
+        var envt_choice="";
+        envt = String(tablename);
+        envt = document.getElementsByName(tablename);
+		for (var i=0;i<envt.length;i++ ){
+		if(envt[i].checked){ //判断复选框是否选中
+		envt_choice=envt_choice+envt[i].value + ","; //值的拼凑 .. 具体处理看你的需要,
+		}
+		}
+        var envts= new Array();
+        envts=envt_choice.split(",");
+        num_envt=0;
+        for (i=0;i<envts.length;i++)
+        {
+            num_envt += 1;
+        }
+        if (num_envt > 3)
+        {
+            alert("暂时不支持2个以上的对比！");
+            return 0;
+        }
+        data={
+        dbname:dbname,
+        tablename:tablename,
+        envt_choice:envt_choice,
+        }
+        $.ajax(
+        {
+        type:'POST',
+        async:true,
+        url:"/dbmgmt/dblist/tableCompare/",
+        data:data,
+        success:function(msg){
+            len = msg.compareInformation.length;
+            if (len==1)
+            {
+                
+                document.getElementById("CompareLeft").innerHTML=msg.compareInformation[0];
+                $("pRight").remove();
+            }
+            if (len==2)
+            {
+                document.getElementById("CompareLeft").innerHTML=msg.compareInformation[0];
+                document.getElementById("CompareRight").innerHTML=msg.compareInformation[1];
+            }
+            
+        }
+        });
+    }
+
+
+    function descTable(db,tablename,envt){
+
+        data={
+        dbname:db,
+        tablename:tablename,
+        envt:envt,
+        }
+        $.ajax(
+        {
+        type:'POST',
+        async:true,
+        url:"/dbmgmt/dblist/descTable/",
+        data:data,
+        success:function(msg){
+
+            document.getElementById("pshowContent").innerHTML=msg.information;
+            /*document.getElementById("pshowLog").innerHTML=msg.log_content;*/
+
+        }
+        });
+
+    } 
+    </script>
+
+
+    <script type="text/javascript" class="init">
+        $(document).ready(function() {
+            //$('#demo').html( '<table cellpadding="0" cellspacing="0" border="0" class="display" id="example"></table>' );
+            $('#example1').dataTable({
+               // "dom": '<"top"i>rt<"bottom"flp><"clear">',
+                //"data": dataSet,
+                //"ajax": '/templates/ajax/data/arrays.txt'
+                //"jQueryUI":true,
+                //"scrollX": true,
+                //"scrollY":200,
+                //"scrollCollapse": true,
+                //"filter":false,
+                "bPaginate":false,
+                "bLengthChange":false,
+                "paging":         false,
+                //"stateSave": true,              //保存表格的选择状态
+                // "pagingType": "full_numbers"   //显示分页栏的样子simple  simple_numbers full full_numbers
+                //"paging":   true,             //分记录显示
+                //"slengthMenu": [[15, 25, 50, -1], [15, 25, 50, "All"]],
+                //"ordering": true,             //排序
+                //"info":     false,             //最后的踪迹
+                "order": [[ 1, "desc" ]],     //设定排序的列
+                //"columnDefs": [ {"targets":0,"orderData": [ 0, 1 ]}, {targets: [ 1 ],orderData: [ 1,0]}, {targets: [ 4 ],orderData: [ 4, 0 ]}, ],                
+            });
+                
+        } )
+</script>
+
+{% endblock %}
+
+{% block content %}
+<br>
+
+<div  class="panel panel-info">
+<div class="panel-heading">
+<h3 class="panel-title">TableViews</h3>
+</div>
+<div class="panel-body">
+    <table  id = "example1" style="width:100%" border="0">
+        <thead>
+            <tr>
+                <th style="width:100px;text-align:center;vertical-align:middle"><font size="3">表名</font></th>
+                <th style="width:250px;text-align:center;vertical-align:middle"><font size="3">表结构</font></th>
+                <th style="width:100px;text-align:center;vertical-align:middle"><font size="3">表结构两两对比</font></th>   
+            </tr>
+        </thead>
+        
+        <tbody border="0">
+        {% for item in tableList %}
+        <tr>
+        <td style="height:25px;text-align:center;vertical-align:middle;width:30%"><font size="3">{{item.0}}</font></td>
+        <td style="height:25px;text-align:center;vertical-align:middle;width:20%"><a data-toggle="modal" data-target="#myModal" onclick="descTable('{{dbName}}','{{item.0}}','生产')"><font size="3">生产</font></a>&nbsp|&nbsp<a data-toggle="modal" data-target="#myModal" onclick="descTable('{{dbName}}','{{item.0}}','uat')"><font size="3">uat</font></a>&nbsp|&nbsp<a data-toggle="modal" data-target="#myModal" onclick="descTable('{{dbName}}','{{item.0}}','fat')"><font size="3">fat</font></a>&nbsp|&nbsp<a data-toggle="modal" data-target="#myModal" onclick="descTable('{{dbName}}','{{item.0}}','lpt')"><font size="3">lpt</font></a>&nbsp|&nbsp<a data-toggle="modal" data-target="#myModal" onclick="descTable('{{dbName}}','{{item.0}}','dev')"><font size="3">dev</font></a></td>
+        <td style="height:25px;text-align:center;vertical-align:middle;width:50%">
+        <input id="{{item.0}}" type="checkbox" name="{{item.0}}" size="3" value="生产"/>&nbsp&nbsp<label><font size="3">生产</font></label>&nbsp&nbsp<input id="{{item.0}}" type="checkbox" name="{{item.0}}" size="3" value="uat"/>&nbsp&nbsp<label><font size="3">uat</font></label>&nbsp&nbsp<input id="{{item.0}}" type="checkbox" name="{{item.0}}" size="3" value="fat"/>&nbsp&nbsp<label><font size="3">fat</font></label>&nbsp&nbsp<input id="{{item.0}}" type="checkbox" name="{{item.0}}" size="3" value="lpt"/>&nbsp&nbsp<label><font size="3">lpt</font></label>&nbsp&nbsp<input id="{{item.0}}" type="checkbox" name="{{item.0}}" size="3" value="dev"/>&nbsp&nbsp<label><font size="3">dev</font></label>&nbsp&nbsp<button class="button" data-toggle="modal" data-target="#myModal_compare" onclick="tableCompare('{{dbName}}','{{item.0}}')" >对比</button>
+        </td>
+
+        
+
+        </tr>
+        {% endfor %}
+        <!-- div效果 -->
+            <div class="modal fade" id="myModal"  role="dialog" aria-hidden="true">
+            <div class="modal-dialog">
+            <div class="modal-content">
+            
+                <div class="modal-body" style=" overflow-y:auto; max-height:600px;" id = "showContent">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <p><font style='color:#5b80b2;font-size:larger'>Table_information：</font></p>
+                <p><font style='color:#5b80b2;font-size:larger' id = "pshowContent">Content</font></p>
+                
+                </div>
+            </div>
+            </div>
+            </div>
+        <!-- div_compare效果 -->
+            <div class="modal fade" id="myModal_compare"  role="dialog" aria-hidden="true">
+            <div class="modal-dialog">
+            <div class="modal-content">
+            
+                <div class="modal-body" style=" overflow-y:auto; max-height:600px;" id = "showContent">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <p><font style='color:#5b80b2;font-size:larger'>Table_Compare：</font></p>
+                <div style="float:left;width:49%">
+                <p><font style='color:#5b80b2;font-size:larger' id = "CompareLeft"></font></p>
+                </div>
+                <div style="float:left;width:49%">
+                <p id="pRight"><font style='color:#5b80b2;font-size:larger' id = "CompareRight"></font></p>
+                </div>
+                </div>
+                <div class="modal-body" style=" overflow-y:auto; max-height:600px;" id = "showContent">
+                <br>
+                <p><font style='color:#A9A9A9;font-size:larger' id = "CompareRight">备注：如果上下两个环境中出现相同行，则应该是字段顺序不同所导致</font></p>
+                </div>
+                
+            </div>
+            </div>
+            </div>
+        </tbody>
+        
+    </table>
+</div>
+</div>
+
+
+{% endblock %}

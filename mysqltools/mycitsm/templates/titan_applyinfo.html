@@ -1,0 +1,119 @@
+{% extends "base_site.html" %}
+{% load i18n static %}
+{% load url from future %}
+
+{% block extrastyle %}{{ block.super }}
+    <link rel="stylesheet" type="text/css" href="{% static "css/forms.css" %}"/>
+    <link rel="stylesheet" type="text/css" href="{% static "css/table2.css" %}"/>
+    <link rel="stylesheet" type="text/css" href="{% static "css/jquery-ui-1.10.4.custom.css" %}" />
+    <link rel="stylesheet" type="text/css" href="{% static "css/jquery-ui.css" %}" />
+    <script type="text/javascript" src="{% static "js/jquery-1.10.2.js" %}"></script>
+    <script type="text/javascript" src="{% static "js/jquery-ui.js" %}"></script>
+
+{% endblock %}
+
+{% block extrahead %}
+<script>
+  $(function() {
+  $( "#dialogaddcluster" ).dialog({
+  autoOpen: false,
+  maxHeight: 600,
+  maxWidth: 550,
+  minHeight:200,
+  minWidth:550,
+  modal: true,
+  show: {
+  //effect: "blind",
+  //duration: 500
+  }
+  });
+  $( "#openeraddcluster" ).click(function() {
+  $( "#dialogaddcluster" ).dialog( "open" );
+  });
+   
+
+});
+ </script>
+{% endblock %}
+
+
+{% block content %}
+
+<div class="module">
+<div id="toolbar">
+<form action="" method="get">
+    
+    <label style="margin-left:5px;" for="searchbar"><img src="/static/img/icon_searchbox.png" alt="Search" /></label>
+    <input type="text" size="30" name="q" value="{{ keyword|default:"" }}" id="searchbar" />
+    <input type="submit" value="Search Server" />
+</form>
+    <fieldset class="module aligned">
+    <input id="openeraddcluster" type="button" value="Add Server"/>
+    <div id="dialogaddcluster" title="MySQL集群新增容灾">
+        <fieldset>
+
+                <form enctype="multipart/form-data" action="" method="post" id="addcluster">
+                    
+                    <div class="form-row">
+                        <label>新增容灾集群:</label>
+                        <input type="text" name="add_clustername" maxlength="20" value=""/>
+                    </div>
+                    <div class="form-row">
+                       <label>容灾节点选择:</label>
+                            <select name="drstorage_choice" id="drstorage_choice">
+                                {% for machinepool in machinepoolrows %}
+                                    <option>{{machinepool.info}}</option>
+
+                                {% endfor %}
+                            </select>
+                    </div>
+                    
+                    <div class="form-row">
+                    <label>集群节点IP:</label>
+                    <input type="text" name="add_clusterip" maxlength="20" value=""/>
+                    </div>
+                    <div class="submit-row">
+                        <input type="submit" value="Save" class="default" name="_save" />
+                        <input type="reset" value="Reset" class="reset" name="_reset" />
+                    </div>
+                </form>
+
+        </fieldset>
+     </div>
+     </fieldset>
+</div>
+</div>
+
+<div class="style">
+<table width="100% border="1"">
+<thead>
+<tr>
+    <th>容灾节点</th>
+    <th>服务名</th>
+    <th>IP</th>
+    <th>Port</th>
+    <th>数据库状态</th>
+    <th>复制状态</th>
+</tr>
+</thead>
+</div>
+
+{% for row in rows %}
+<tr>
+    <td><a href="drcontrol/drmaster_host={{row.master_host}}">{{row.master_host}}</a></td>
+    <td>{{row.service_name}}</td>
+    <td>{{row.service_ip}}</td>
+    <td>{{row.service_port}}</td>
+    <td><a 
+        {% if row.server_status == "Critical" %} style="color:red;" {% endif %} 
+        {% if row.server_status == "Fair" %} style="color:darkorange;" {% endif %} 
+        {% if row.server_status == "Good" %} style="color:green;" {% endif %}>{{row.server_status}}</a>
+    </td>
+    <td><a href="drslavestatus/drip={{row.service_ip}}&drport={{row.service_port}}&drclustername={{row.service_name}}"
+        {% if row.slave_status == "Critical" %} style="color:red;" {% endif %} 
+        {% if row.slave_status == "Fair" %} style="color:darkorange;" {% endif %} 
+        {% if row.slave_status == "Good" %} style="color:green;" {% endif %}>{{row.slave_status}}</a></td>
+</tr>
+{% endfor %}
+</table>
+{% endblock %}

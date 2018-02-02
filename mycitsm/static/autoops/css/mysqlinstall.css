@@ -1,0 +1,92 @@
+.block1 {
+      margin: 10px ;
+      width: 778px;
+      border: 1px solid #CCCCCC;
+      height: 550px;
+      float: left;
+      font-size: 15px;
+      }
+.block1 input {
+      height: 20px;
+      margin: 5px;
+      }
+
+.block1 .error {
+      margin: 20px 0 10px 200px
+      }
+
+.block1 .error ul li{
+      height: 16px;
+      list-style-image: url(../img/icon-error.gif);
+      line-height: 16px;
+      font-size: 11px; 
+      }
+
+.block1 .warning {
+      margin: 20px 0 10px 200px
+      }
+
+.block1 .warning ul li{
+      height: 20px;
+      list-style-image: url(../img/icon-warning.gif);
+      }
+
+
+.block1 h2{
+        margin: 0;
+        padding: 2px 5px 3px 5px;
+        font-size: 14px;
+        text-align: left;
+        font-weight: bold;
+        background: #7CA0C7 url(../img/default-bg.gif) top left repeat-x;
+        color: white;
+        height:20px;
+        line-height:20px;
+}
+
+.block2 {
+      margin: 10px ;
+      width: 778px;
+      border: 1px solid #CCCCCC;
+      height: 550px;
+      float: left;      
+      font-size: 15px;
+      }
+.block2 h2{
+        margin: 0;
+        padding: 2px 5px 3px 5px;
+        font-size: 14px;
+        text-align: left;
+        font-weight: bold;
+        background: #7CA0C7 url(../img/default-bg.gif) top left repeat-x;
+        color: white;
+        height:20px;
+        line-height:20px;
+}
+.serverconf {
+         margin: 20px;
+            }
+
+.serverconf p {
+         line-height: 30px;
+         height:30px;
+              }
+       
+#form {
+       margin: 40px 0 0 170px;
+      }
+
+
+.submit-row {
+           margin-left:200px;
+            }
+
+.submit-row input {
+                  font-size: 15px;
+                  background: white url(../img/nav-bg.gif) bottom repeat-x;
+                  padding: 3px 5px;
+                  color: black;
+                  border: 1px solid #bbb;
+                  border-color: #ddd #aaa #aaa #ddd;
+                  height:25px;
+                  }

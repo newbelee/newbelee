@@ -1,0 +1,22 @@
+<uwsgi>
+    <socket>0.0.0.0:8000</socket>
+    <listen>100</listen>
+    <master>true</master>
+    <pidfile>/usr/local/nginx/uwsgi.pid</pidfile>
+    <processes>4</processes>
+    <module>django_wsgi</module> 
+    <pythonpath>/var/www/site/mycitsm/</pythonpath> 
+    <profiler>true</profiler>
+    <memory-report>true</memory-report>
+    <enable-threads>true</enable-threads>
+    <logdate>true</logdate>
+    <limit-as>1024</limit-as>
+    <daemonize>/var/log/uwsgi.log</daemonize>
+    <no-orphans />
+    <disable-logging />
+    <post-buffering>8192</post-buffering>
+    <harakiri>800</harakiri>
+    <uid>op1</uid>
+    <gid>op1</gid>
+</uwsgi>
+

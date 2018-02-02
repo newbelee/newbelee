@@ -1,0 +1,99 @@
+{% extends "base_site.html" %}
+{% load i18n static %}
+{% load url from future %}
+
+{% block extrastyle %}{{ block.super }}<link rel="stylesheet" type="text/css" href="{% static "css/forms.css" %}" />{% endblock %}
+
+{% block extrahead %}
+    <script type="text/javascript" src="{% static "js/jquery.min.js" %}"></script>
+    <script>
+    $(document).ready(function(){
+        $("pre").hide();
+    });
+    function showscript(nowthis){
+        $(nowthis).parent().find("pre").toggle();
+    }
+    </script>
+{% endblock %}
+
+{% block content %}
+<form enctype="multipart/form-data" action="" method="post" id="release_form">
+
+<fieldset class="module aligned">
+    <h2>发布明细</h2>
+    <div class="form-row">
+        <label class="required">目标数据库:</label>
+        <input type="text" name="dbname" value="{{dbname}}" disabled="disabled" size="40" />
+        <ol>
+        {% for row in details %}
+            <li>
+                <label>{{row.type}}</label>
+                <input type="text" size="40" name="objname" value="{{row.objname}}" disabled="disabled" />
+                {% if row.colname %} 
+                <label style="margin-left:10px;">新增字段</label>
+                <input type="text" name="colname" value="{{row.colname}}" disabled="disabled" />
+                {% endif %}
+                <input type="button" onclick="showscript(this)" value="查看脚本" />
+                <pre style="color:gray;">{{row.script}}</pre>
+            </li>
+        {% endfor %}
+        </ol>
+    </div>
+</fieldset>
+
+<fieldset class="module aligned">
+    <h2>发布信息</h2>
+    <div class="form-row">
+        <label class="required" style="width:150px;">当前状态:</label>
+        <input type="text" value="{{stats.status}}" disabled="disabled" />  
+    </div>
+    <div class="form-row">
+        <label style="width:150px;">创建时间:</label>
+        <input type="text" value="{{stats.createddate|date:"Y-m-d H:i:s"}}" disabled="disabled" />  
+        <label style="display:inline;float:none;margin-left:10px;">创建人:</label>
+        <input type="text" value="{{stats.createdby}}" disabled="disabled" />
+    </div>
+    <div class="form-row">
+        <label style="width:150px;">最后修改时间:</label>
+        <input type="text" value="{{stats.lastmodifieddate|date:"Y-m-d H:i:s"}}" disabled="disabled" />  
+        <label style="display:inline;float:none;margin-left:10px;">修改人:</label>
+        <input type="text" value="{{stats.lastmodifiedby}}" disabled="disabled" />
+    </div>
+    <div class="form-row">
+        <label style="width:150px;">提交时间:</label>
+        <input type="text" value="{{stats.submitteddate|date:"Y-m-d H:i:s"}}" disabled="disabled" />  
+        <label style="display:inline;float:none;margin-left:10px;">提交人:</label>
+        <input type="text" value="{{stats.submittedby}}" disabled="disabled" />
+    </div>
+    <div class="form-row">
+        <label style="width:150px;">测试环境最后上传时间:</label>
+        <input type="text" value="{{stats.uploadtestdate|date:"Y-m-d H:i:s"}}" disabled="disabled" />  
+        <label style="display:inline;float:none;margin-left:10px;">发布人:</label>
+        <input type="text" value="{{stats.uploadtestby}}" disabled="disabled" />
+    </div>
+    <div class="form-row">
+        <label style="width:150px;">UAT环境最后上传时间:</label>
+        <input type="text" value="{{stats.uploaduatdate|date:"Y-m-d H:i:s"}}" disabled="disabled" />  
+        <label style="display:inline;float:none;margin-left:10px;">发布人:</label>
+        <input type="text" value="{{stats.uploaduatby}}" disabled="disabled" />  
+    </div>
+    <div class="form-row">
+        <label style="width:150px;">生产环境上传时间:</label>
+        <input type="text" value="{{stats.uploadproductdate|date:"Y-m-d H:i:s"}}" disabled="disabled"/> 
+        <label style="display:inline;float:none;margin-left:10px;">发布人:</label>
+        <input type="text" value="{{stats.uploadproductby}}" disabled="disabled" />  
+    </div>
+    <div id="history" class="form-row">
+        <label>发布历史:</label> 
+        <ol style="margin-top:2em;">
+        {% for row in history %}
+            <li>
+                <p style="color:gray;">{{row.content}}</p>
+            </li>
+        {% endfor %}
+        </ol>
+    </div>
+</fieldset>
+
+</form>
+{% endblock %}

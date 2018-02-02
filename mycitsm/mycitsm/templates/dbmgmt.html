@@ -1,0 +1,66 @@
+{% extends "base_site.html" %}
+{% load i18n static %}
+{% load url from future %}
+
+{% block extrastyle %}{{ block.super }}<link rel="stylesheet" type="text/css" href="{% static "css/intro.css" %}" />{% endblock %}
+
+{% block content %}
+<div id="content">
+
+<div class="introlist refpic">
+<table width="100%">
+<caption align="center">Guide</caption>
+<tr>
+    <td><a href="{% url 'mycitsm.views.dblist' %}"><img src="/static/img/list_menu_dblist.png" /></a></td>
+    <td>
+        <ul>
+            <li>查看/修改数据库基本信息</li>
+            <li>查看数据库连接串信息</li>
+        </ul>
+    </td>
+</tr>
+<tr>
+    <td><a href="{% url 'mycitsm.views.newdbapply' %}"><img src="/static/img/list_menu_dbapply.png" /></a></td>
+    <td>
+        <ul>
+            <li>查看/提交数据库申请单</li>
+            <li>自动部署数据库申请单</li>
+        </ul>
+    </td>
+</tr>
+
+<tr>
+    <td><a href="{% url 'mycitsm.views.dnsapply' %}"><img src="/static/img/list_menu_dnsapply.png" /></a></td>
+    <td>
+        <ul>
+            <li>生成测试/生产环境域名申请表</li>
+        </ul>
+    </td>
+</tr>
+
+<tr>
+    <td><a href="{% url 'mycitsm.views.dev_test_user' %}"><img src="/static/img/list_menu_dev_test_user.png" /></a></td>
+    <td>
+        <ul>
+            <li>新建数据库用户</li>
+            <li>查看/修改用户的DB权限</li>
+        </ul>
+    </td>
+</tr>
+
+<tr>
+    <td><a href="{% url 'mycitsm.views.dbcapacitymonitor' %}"><img src="/static/img/list_menu_dbcapacitymonitor.png" /></a></td>
+    <td>
+        <ul>
+            <li>查看数据库/表容量、增幅</li>
+            <li>查看数据库/表容量走势</li>
+        </ul>
+    </td>
+</tr>
+
+</table>
+</div>
+
+</div>
+
+{% endblock %}

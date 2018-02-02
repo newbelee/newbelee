@@ -1,0 +1,138 @@
+{% extends "base_site.html" %}
+{% load i18n static %}
+{% load url from future %}
+
+{% block extrastyle %}{{ block.super }}
+    <link rel="stylesheet" type="text/css" href="{% static "css/forms.css" %}" />
+{% endblock %}
+
+{% block content %}
+<form enctype="multipart/form-data" action="" method="post" id="form">
+
+{% if dbtype == "MySQL" %}
+<fieldset class="module aligned">
+    <h2>基本状态</h2>
+    <div class="form-row">
+        <label>主机信息:</label>
+        <input type="text" value="{{master}}" />
+    </div>
+    <div class="form-row">
+        <label>复制运行状态:</label>
+        <input type="text" value="{{s_status.SLAVE_RUNNING}}" />
+    </div>
+    <div class="form-row">
+        <label>复制心跳时间:</label>
+        <input type="text" value="{{s_status.HEARTBEAT}}" />
+    </div>
+    <div class="form-row">
+        <label>从机半同步状态:</label>
+        <input type="text" value="{{s_status.RPL_SEMI_SYNC_SLAVE_STATUS}}" />
+    </div>
+    <div class="form-row">
+        <label>主机半同步状态:</label>
+        <input type="text" value="{{m_status.RPL_SEMI_SYNC_MASTER_STATUS}}" />
+    </div>
+</fieldset>
+
+<fieldset class="module aligned">
+    <h2>详细状态</h2>
+    <div class="form-row">
+        <label style="width:13em">Slave_IO_State:</label>
+        <input type="text" size="60" value="{{showslavestatus.Slave_IO_State}}" />
+    </div>
+    <div class="form-row">
+        <label style="width:13em">Master_Host:</label>
+        <input type="text" size="60" value="{{showslavestatus.Master_Host}}" />
+    </div>
+    <div class="form-row">
+        <label style="width:13em">Master_Port:</label>
+        <input type="text" size="60" value="{{showslavestatus.Master_Port}}" />
+    </div>
+    <div class="form-row">
+        <label style="width:13em">Connect_Retry:</label>
+        <input type="text" size="60" value="{{showslavestatus.Connect_Retry}}" />
+    </div>
+    <div class="form-row">
+        <label style="width:13em">Master_Log_File:</label>
+        <input type="text" size="60" value="{{showslavestatus.Master_Log_File}}" />
+    </div>
+    <div class="form-row">
+        <label style="width:13em">Read_Master_Log_Pos:</label>
+        <input type="text" size="60" value="{{showslavestatus.Read_Master_Log_Pos}}" />
+    </div>
+    <div class="form-row">
+        <label style="width:13em">Relay_Log_File:</label>
+        <input type="text" size="60" value="{{showslavestatus.Relay_Log_File}}" />
+    </div>
+    <div class="form-row">
+        <label style="width:13em">Relay_Log_Pos:</label>
+        <input type="text" size="60" value="{{showslavestatus.Relay_Log_Pos}}" />
+    </div>
+    <div class="form-row">
+        <label style="width:13em">Relay_Master_Log_File:</label>
+        <input type="text" size="60" value="{{showslavestatus.Relay_Master_Log_File}}" />
+    </div>
+    <div class="form-row">
+        <label style="width:13em">Slave_IO_Running:</label>
+        <input type="text" size="60" value="{{showslavestatus.Slave_IO_Running}}" />
+    </div>
+    <div class="form-row">
+        <label style="width:13em">Slave_SQL_Running:</label>
+        <input type="text" size="60" value="{{showslavestatus.Slave_SQL_Running}}" />
+    </div>
+    <div class="form-row">
+        <label style="width:13em">Exec_Master_Log_Pos:</label>
+        <input type="text" size="60" value="{{showslavestatus.Exec_Master_Log_Pos}}" />
+    </div>
+    <div class="form-row">
+        <label {% if showslavestatus.Seconds_Behind_Master == 0 %} style="width:13em;" {% endif %} {% if showslavestatus.Seconds_Behind_Master != 0 %} style="width:13em;color:red;" {% endif %} >Seconds_Behind_Master:</label>
+        <input type="text" size="60" value="{{showslavestatus.Seconds_Behind_Master}}" />
+    </div>
+    <div class="form-row">
+        <label style="width:13em">Last_IO_Errno:</label>
+        <input type="text" size="60" value="{{showslavestatus.Last_IO_Errno}}" />
+    </div>
+    <div class="form-row">
+        <label style="width:13em">Last_IO_Error:</label>
+        <input type="text" size="60" value="{{showslavestatus.Last_IO_Error}}" />
+    </div>
+    <div class="form-row">
+        <label style="width:13em">Last_SQL_Errno:</label>
+        <input type="text" size="60" value="{{showslavestatus.Last_SQL_Errno}}" />
+    </div>
+    <div class="form-row">
+        <label style="width:13em">Last_SQL_Error:</label>
+        <input type="text" size="60" value="{{showslavestatus.Last_SQL_Error}}" />
+    </div>
+</fieldset>
+{% endif %}
+
+{% if dbtype == "MongoDB" %}
+<fieldset class="module aligned">
+    <h2>复制集状态</h2>
+    <div class="form-row">
+        <label class="required" >复制集:</label>
+        <input type="text" value="{{rs_status.set}}" />
+    </div>
+    {% for member in rs_status.members %}
+    <div class="form-row">
+        <label class="required">节点{{member.id}}{% if member.self %} (Self) {% endif %}:</label>
+    </div>   
+    <div class="form-row">
+        <label >名称:</label>
+        <input type="text" value="{{member.name}}" />
+    </div>   
+    <div class="form-row">
+        <label>状态:</label>
+        <input type="text" value="{{member.stateStr}}" />
+    </div>   
+    <div class="form-row">
+        <label>最后操作时间:</label>
+        <input type="text" value="{{member.optimeDate}}" />
+    </div>   
+    {% endfor %}
+</fieldset>
+{% endif %}
+
+</form>
+{% endblock %}

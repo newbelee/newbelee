@@ -1,0 +1,53 @@
+{% extends "base_site.html" %}
+{% load i18n static %}
+{% load url from future %}
+
+
+{% block extrastyle %}
+    {{ block.super }}
+    <link rel="stylesheet" type="text/css" href="{% static "sqlreview/css/forms.css" %}" />
+    <link rel="stylesheet" type="text/css" href="{% static "sqlreview/css/intro.css" %}" />
+{% endblock %}
+
+
+{% block content %}
+<div id="content">
+
+<div class="introlist refpic">
+<table width="100%">
+<caption align="center">Guide</caption>
+<tr>
+    <td><a href="{% url 'sqlreview.views.specificationCheck' %}"><img src="/static/sqlreview/img/list_menu_specificationCheck.png" /></a></td>
+    <td>
+        <ul>
+            <li>SQL格式化</li>
+            <li>自助审核语句是否符合规范</li>
+        </ul>
+    </td>
+</tr>
+
+<tr>
+    <td><a href="{% url 'sqlreview.views.performanceCheck' %}"><img src="/static/sqlreview/img/list_menu_performanceCheck.png" /></a></td>
+    <td>
+        <ul>
+            <li>自助审核语句是否符合性能要求</li>
+        </ul>
+    </td>
+</tr>
+
+<tr>
+    <td><a href="{% url 'sqlreview.views.autoSqlCheck' %}"><img src="/static/sqlreview/img/list_menu_autoSqlCheck.png" /></a></td>
+    <td>
+        <ul>
+            <li>自动审核并发送邮件通知</li>
+        </ul>
+    </td>
+</tr>
+
+
+</table>
+</div>
+
+</div>
+
+{% endblock %}

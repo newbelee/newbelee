@@ -1,0 +1,40 @@
+{% extends "base_site.html" %}
+{% load i18n static %}
+{% load url from future %}
+
+{% block extrastyle %}{{ block.super }}<link rel="stylesheet" type="text/css" href="{% static "css/forms.css" %}" />{% endblock %}
+
+{% block content %}
+<form enctype="multipart/form-data" action="" method="post" id="user_form">
+
+<fieldset class="module aligned">
+    <h2>User info</h2>
+    <div class="form-row">
+        <label class="required">Username:</label>
+        <input type="text" name="username" id ="username" value="{{username}}"  />
+        </br>
+        <label class="required">dbname:</label>
+        <input type="text" name="dbname" id="dbname" value="{{dbname}}"                 
+    </div>
+    <div class="form-row">
+        <input {% if issupper %} checked="checked" {% endif %} type="checkbox" name="issupper" id="issupper" value="1" />
+        <label for="id_is_superuser" class="vCheckboxLabel">Super User status (是否能访问敏感权限)</label>
+        </br>
+        </br>
+        <p style="float:left; margin-left:-40px;">状态:</p>
+        <select id="status"  name="status"" style="width:200px;">
+        {% for item in statuslist %}
+            <option value="{{ item.status }}" {% ifequal item.status|lower status %} selected="selected" {% endifequal %}>{{item.statusname}}</option>
+        {% endfor  %}
+        </select>
+
+    </div>
+</fieldset>
+
+<div class="submit-row">
+    <input type="submit" value="Save" class="default" name="_save" />
+    <input type="reset" value="Reset" class="reset" name="_reset" />
+</div>
+
+</form>
+{% endblock %}

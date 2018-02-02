@@ -1,0 +1,130 @@
+{% extends "base_site.html" %}
+{% load i18n static %}
+{% load url from future %}
+
+{% block extrastyle %}{{ block.super }}
+    <link rel="stylesheet" type="text/css" href="{% static "css/forms.css" %}"/>
+    <link rel="stylesheet" type="text/css" href="{% static "css/table2.css" %}"/>
+    <link rel="stylesheet" type="text/css" href="{% static "css/jquery-ui-1.10.4.custom.css" %}" />
+    <link rel="stylesheet" type="text/css" href="{% static "css/jquery-ui.css" %}" />
+    <script type="text/javascript" src="{% static "js/jquery-1.10.2.js" %}"></script>
+    <script type="text/javascript" src="{% static "js/jquery-ui.js" %}"></script>
+
+{% endblock %}
+{% block extrahead %}
+<script>
+  $(function() {
+  $( "#dialog" ).dialog({
+  autoOpen: false,
+  maxHeight: 600,
+  maxWidth: 550,
+  minHeight:300,
+  minWidth:550,
+  modal: true,
+  show: {
+  //effect: "blind",
+  //duration: 500
+  }
+  });
+  $( "#opener" ).click(function() {
+  $( "#dialog" ).dialog( "open" );
+  });
+   
+
+});
+ </script>
+
+<script>
+    $("#conninfo").ready(function(){
+        $("#conninfo").hide();
+    });
+    function showconninfo(){
+        $("#conninfo").toggle();
+    }
+
+    </script>
+<script>
+  $(function () {
+    $( "#datepicker" ).datepicker();
+  });
+  </script>
+
+
+{% endblock %}
+
+{% block content %}
+
+<fieldset class="module aligned">
+    <h2>MySQL二进制日志备份信息</h2>
+    <div class="form-row">
+        <input type="button" onclick="showconninfo()" value="查看历史备份信息" />
+    </div>
+     <div class="form-row">
+        <label >日志备开关:</label>
+        <input type="text" name="cron_status" maxlength="20" value=" {% if binlog_swtich == 1 %} ON {% else %} OFF  {% endif %}"/>
+        <input id="opener" type="button" value="配置"/>
+        <div id="dialog" title="MySQL binlog 调度修改">
+            <fieldset>
+                <form enctype="multipart/form-data" action="" method="post" id="mysqlbin">
+                    <div class="form-row">
+                        <label>开:<input  type="radio" {% if binlog_swtich == 1 %} checked="checked" {% endif %} name="bincronswitch" value=1 />
+                    关:<input  type="radio" {% if binlog_swtich == 0 %} checked="checked" {% endif %} name="bincronswitch" value=0 /></label>
+                    </div>
+                    <div class="form-row">
+                    <label>预估开启时间:</label>
+                        <input type="text" id="datepicker" name="bincron_datepicker" value="">
+                    </div>
+                    <div class="form-row">
+                    <label for="reason">关闭原因:</label>
+                    <textarea onpropertychange="if(value.length>100) value=value.substr(0,100)" cols="50" rows="5" name="bincron_closedescription" ></textarea>
+                    </div>
+                    <!-- Allow form submission with keyboard without duplicating the dialog button -->
+                    <div class="submit-row">
+                        <input type="submit" value="Save" class="default" name="_save" />
+                        <input type="reset" value="Reset" class="reset" name="_reset" />
+                    </div>
+                 </form>
+                </fieldset>
+ 
+        </div>
+
+ 
+    </div>
+    <div class="form-row">
+        <label>最近调用状态:</label> 
+        <input type="text" name="cron_lasttime" maxlength="20" value="{% if binlog_status == 1 %} ON {% else %} OFF  {% endif %}" />
+    </div>
+</fieldset>
+
+<fieldset class="module aligned" id="conninfo">
+    <h2>MySQL binlog 历史备份信息</h2>
+    <table style="color:gray;" width="100%">
+    <thead>
+    <tr>
+        <th>FileName</th>
+        <th>FileSize</th>
+        <th>StartTime</th>
+        <th>EndTime</th>
+        <th>BackupTime(s)</th>
+        <th>TarTime(s)</th>
+        <th>FtpTime(s)</th>
+        <th>Retry</th>
+    </tr>
+    </thead>
+    {% for mysqlbin_history_row in mysqlbin_history %}
+    <tr>
+        <td>{{mysqlbin_history_row.filename}}</td>
+        <td>{{mysqlbin_history_row.filesize}}</td>
+        <td>{{mysqlbin_history_row.backup_start_time}}</td>
+        <td>{{mysqlbin_history_row.backup_end_time}}</td>
+        <td>{{mysqlbin_history_row.backuptime}}</td>
+        <td>{{mysqlbin_history_row.tartime}}</td>
+        <td>{{mysqlbin_history_row.ftptime}}</td>
+        <td>{{mysqlbin_history_row.retry}}</td>
+    </tr>
+    {% endfor %}
+    </table>
+</fieldset>
+
+{% endblock %}
+

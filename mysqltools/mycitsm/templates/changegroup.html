@@ -1,0 +1,54 @@
+{% extends "base_site.html" %}
+{% load i18n static %}
+{% load url from future %}
+
+{% block extrastyle %}{{ block.super }}<link rel="stylesheet" type="text/css" href="{% static "css/forms.css" %}" />{% endblock %}
+
+{% block content %}
+<form enctype="multipart/form-data" action="" method="post" id="group_form">
+
+<fieldset class="module aligned">
+    <h2>Group info</h2>
+    <div class="form-row">
+        <label class="required">Groupname:</label>
+        <input type="text" name="groupname" maxlength="80" value="{{group.name}}" {% if not group.is_userdef %} disabled="disabled" {% endif %} />
+        <p class="help"> You can only change the name of user-defined groups. </p>
+    </div>
+    <div class="form-row">
+        <label >Description:</label>
+        <textarea onpropertychange="if(value.length>200) value=value.substr(0,200)" cols="50" rows="5" name="description" >{{group.description}}</textarea>
+        <p class="help"> You can change the description of all groups. </p>
+    </div>
+</fieldset>
+
+<fieldset class="module aligned">
+    <h2>Group membership</h2>
+    <div class="form-row">
+        <label>Members:</label>
+        {% for user in user_list %}
+        <p>
+            <input type="checkbox" id="{{user.username}}" value="{{user.username}}" name="user_checkbox_list"
+                {% if not group.is_userdef %} disabled="disabled" {% endif %} 
+                checked="checked"
+            />
+            <label for="{{user.username}}" class="vCheckboxLabel"> {{user.username}} </label>
+        </p>
+        {% endfor %}
+        {% if group.is_userdef %} <a href="addmember/" class="addlink">Add member</a> {% endif %}
+        <p class="help"> You can only drop or add members of user-defined groups. </p>
+    </div>
+</fieldset>
+
+{% if group.is_userdef %} 
+    <div class="submit-row">
+        <p class="deletelink-box"><a href="delete/" class="deletelink">Delete group</a></p>
+    </div>
+{% endif %}
+
+<div class="submit-row">
+    <input type="submit" value="Save" class="default" name="_save" />
+    <input type="reset" value="Reset" class="reset" name="_reset" />
+</div>
+
+</form>
+{% endblock %}

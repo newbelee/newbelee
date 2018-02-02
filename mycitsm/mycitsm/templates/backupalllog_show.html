@@ -1,0 +1,78 @@
+{% extends "base_site.html" %}
+{% load i18n static %}
+{% load url from future %}
+
+{% block extrastyle %}{{ block.super }}
+    <link rel="stylesheet" type="text/css" href="{% static "css/forms.css" %}"/>
+    <link rel="stylesheet" type="text/css" href="{% static "css/table2.css" %}"/>
+    <link rel="stylesheet" type="text/css" href="{% static "css/jquery-ui-1.10.4.custom.css" %}" />
+    <link rel="stylesheet" type="text/css" href="{% static "css/jquery-ui.css" %}" />
+    <script type="text/javascript" src="{% static "js/jquery-1.10.2.js" %}"></script>
+    <script type="text/javascript" src="{% static "js/jquery-ui.js" %}"></script>
+
+{% endblock %}
+
+{% block extrahead %}
+<script>
+  $(function() {
+  $( "#dialogaddcluster" ).dialog({
+  autoOpen: false,
+  maxHeight: 600,
+  maxWidth: 550,
+  minHeight:200,
+  minWidth:550,
+  modal: true,
+  show: {
+  //effect: "blind",
+  //duration: 500
+  }
+  });
+  $( "#openeraddcluster" ).click(function() {
+  $( "#dialogaddcluster" ).dialog( "open" );
+  });
+   
+
+});
+ </script>
+{% endblock %}
+
+
+{% block content %}
+<div class="module">
+<form action="" method="get">
+
+    <label style="margin-left:5px;" for="searchbar"><img src="/static/img/icon_searchbox.png" alt="Search" /></label>
+    <input type="text" size="30" name="q" value="{{ keyword|default:"" }}" id="searchbar" />
+    <input type="submit" value="Search Server" />
+</form>
+</div>
+
+<div class="style">
+<table width="100% border="1"">
+<thead>
+<tr>
+    <th>集群名</th>
+    <th>备份节点</th>
+    <th>备份开始时间</th>
+    <th>备份结束时间</th>
+    <th>拷贝结束时间</th>
+    <th>备份状态</th>
+    <th>详细信息</th>
+</tr>
+</thead>
+</div>
+
+{% for row in rows %}
+<tr>
+    <td>{{row.cluster_name}}</td>
+    <td>{{row.machine_name}}</td>
+    <td>{{row.backup_start_time}}</td>
+    <td>{{row.last_backuptime}}</td>
+    <td>{{row.ftp_end_time}}</td>
+    <td>{{row.backupstatus}}</td>
+    <td><a href="backupalllog_errorinfo/machine_name={{row.machine_name}}">{{row.info}}</a></td>
+    
+</tr>
+{% endfor %}
+</table>
+{% endblock %}

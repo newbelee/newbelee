@@ -1,0 +1,78 @@
+{% extends "base_site.html" %}
+{% load i18n static %}
+{% load url from future %}
+
+{% block extrastyle %}{{ block.super }}<link rel="stylesheet" type="text/css" href="{% static "css/table.css" %}" />{% endblock %}
+
+{% block content %}
+<div style="padding:0 0 10px 0;">
+    <a href="add/"><button type="button" >添加新用户</button></a>
+    <a href="{% url 'mycitsm.views.approve_list_dba' %}"><button type="button" >开发环境特殊权限申请信息</button></a>
+    <h1 style="float:right;"><a href="/dbmgmt/dblist/" style="color:red">查询 db 连接串</a></h1>
+</div>
+
+<div class="module">
+<div id="toolbar">
+<form action="" method="GET">
+     
+    <label style="font-weight:bold;margin-left:5px;">开发/测试服务器:</label>
+    <select name="envt" style="margin-left:5px; width:100px;">
+        <option value="dev" {% ifequal "dev"|lower envt %}selected="selected" {% endifequal %}>dev</option>
+        <option value="lpt" {% ifequal "lpt"|lower envt %}selected="selected" {% endifequal %}>lpt</option>
+        <option value="fat" {% ifequal "fat"|lower envt %}selected="selected" {% endifequal %}>fat</option>
+        <option value="uat" {% ifequal "uat"|lower envt %}selected="selected" {% endifequal %}>uat</option>
+    </select>
+
+    <label for="searchbar"><img src="/static/img/icon_searchbox.png" alt="Search" /></label>
+    <input type="text" size="40" name="q" value="{{ login|default:"" }}" id="searchbar" />
+    <input type="submit" value="Search Login" />
+</form>
+</div>
+</div>
+
+<div class="style">
+<table width="100%" border="1">
+<thead>
+<tr>
+    <th>登录名</th>
+    <th>主机</th>
+    <th>用户名</th>
+    <th>邮件地址</th>
+    <th>所属组</th>
+</tr>
+</thead>
+
+{% for row in rows %}
+<tr>
+    <td><a href="user={{row.dbuser}}&ip={{row.hostname}}25&envt={{envt}}&email={{row.email}}&username={{row.username}}&orginfo={{row.orginfo}}/">{{row.dbuser}}</a></td>
+    <td>@{{row.hostname}}</td>
+    <td>{{row.username}}</td>
+    <td>{{row.email}}</td>
+    <td>{{row.orginfo}}</td>
+</tr>
+{% endfor %}
+
+</table>
+</div>
+
+<div class="paginator">
+    <span class="step-links">
+        <a href="?envt={{ envt  }}&q={{ login|default:"" }}&page=1">first&lt;&lt;</a>
+
+        {% if rows.has_previous %}
+            <a href="?envt={{ envt  }}&q={{ login|default:"" }}&page={{ rows.previous_page_number }}">previous</a>
+        {% endif %}
+
+        <span class="current">
+            Page {{ rows.number }} of {{ rows.paginator.num_pages }}.
+        </span>
+
+        {% if rows.has_next %}
+            <a href="?envt={{ envt  }}&q={{ login|default:"" }}&page={{ rows.next_page_number }}">next</a>
+        {% endif %}
+
+        <a href="?envt={{ envt  }}&q={{ login|default:"" }}&page={{ rows.paginator.num_pages }}">&gt;&gt;last</a>
+    </span>
+</div>
+
+{% endblock %}

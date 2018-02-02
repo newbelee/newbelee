@@ -1,0 +1,70 @@
+{% extends "base_site.html" %}
+{% load i18n static %}
+{% load url from future %}
+
+{% block extrastyle %}{{ block.super }}<link rel="stylesheet" type="text/css" href="{% static "css/forms.css" %}" />{% endblock %}
+
+{% block content %}
+<form enctype="multipart/form-data" action="" method="post" id="user_form">
+
+<fieldset class="module aligned">
+    <h2>基本信息</h2>
+    <div class="form-row">
+        <label class="required">数据库名:</label>
+        <input type="text" name="dbname" size="40" maxlength="40" />
+        <p class="help">数据库名必须以DB结尾.</p>
+    </div>
+    <div class="form-row">
+        <label >业务部门:</label>
+        <select name = "department" id="department">
+                    {% for department in departmentList %}
+                    <option value = "{{department.organization_name}}" {% ifequal department.organization_name|lower organization_name|lower %}selected="selected"{% endifequal %}>{{department.organization_name}}</option>
+                    {% endfor %}
+        </select>
+        
+    </div>
+    <div class="form-row">
+        <label>功能描述:</label>
+        <textarea onpropertychange="if(value.length>100) value=value.substr(0,100)" cols="50" rows="2" name="description" ></textarea>
+    </div>
+    <div class="form-row">
+        <label >程序用户名:</label>
+        <input type="text" name="dbuser" size="20" maxlength="12" />&nbsp;&nbsp;
+        <input type="checkbox" name="createReadUser" id="createReadUser" value="yes" /><label style="display:inline;float:none;" for="createReadUser">是否同时创建只读用户（用于读写分离）？</label>
+        <p class="help">用户以w_为前缀，长度不超过12位.</p>
+    </div>
+    <div class="form-row">
+        <label >预估DB容量:</label>
+        <input type="text" name="estimatedsize" size="20" />
+        <p class="help">例如:100GB.</p>
+    </div>
+    <div class="form-row">
+        <label >是否关键数据库:</label>
+        <select name = "importance" id="importance">                    
+                    <option value = "关键" >关键</option>
+                    <option value = "非关键" selected="selected">非关键</option>
+                    
+        </select>
+        
+    </div>
+
+</fieldset>
+
+<fieldset class="module aligned">
+    <h2>附加信息</h2>
+    <div class="form-row">
+        <label >预估上线日期:</label>
+        <input type="text" name="estimatedonlinedate" size="20" />
+    </div>
+    <div class="form-row">
+        <label>其他需求:</label>
+        <textarea onpropertychange="if(value.length>100) value=value.substr(0,100)" cols="50" rows="2" name="requirement" ></textarea>
+    </div>
+</fieldset>
+
+<div class="submit-row">
+    <input type="submit" value="提交" class="default" name="_save" />
+</div>
+
+</form>
+{% endblock %}

@@ -1,0 +1,110 @@
+{% extends "base_site.html" %}
+{% load i18n static %}
+{% load url from future %}
+
+{% block extrastyle %}{{ block.super }}
+    <link rel="stylesheet" type="text/css" href="{% static "css/forms.css" %}"/>
+    <link rel="stylesheet" type="text/css" href="{% static "css/table2.css" %}"/>
+    <link rel="stylesheet" type="text/css" href="{% static "css/jquery-ui-1.10.4.custom.css" %}" />
+    <link rel="stylesheet" type="text/css" href="{% static "css/jquery-ui.css" %}" />
+    <script type="text/javascript" src="{% static "js/jquery-1.10.2.js" %}"></script>
+    <script type="text/javascript" src="{% static "js/jquery-ui.js" %}"></script>
+
+{% endblock %}
+
+{% block extrahead %}
+<script>
+  $(function() {
+  $( "#dialogaddcluster" ).dialog({
+  autoOpen: false,
+  maxHeight: 600,
+  maxWidth: 550,
+  minHeight:200,
+  minWidth:550,
+  modal: true,
+  show: {
+  //effect: "blind",
+  //duration: 500
+  }
+  });
+  $( "#openeraddcluster" ).click(function() {
+  $( "#dialogaddcluster" ).dialog( "open" );
+  });
+   
+
+});
+ </script>
+{% endblock %}
+
+
+{% block content %}
+
+<div class="module">
+<div id="toolbar">
+<form action="" method="get">
+    
+    <label style="margin-left:5px;" for="searchbar"><img src="/static/img/icon_searchbox.png" alt="Search" /></label>
+    <input type="text" size="30" name="q" value="{{ keyword|default:"" }}" id="searchbar" />
+    <input type="submit" value="Search Server" />
+</form>
+    <fieldset class="module aligned">
+    <input id="openeraddcluster" type="button" value="Add Ignore Machine"/>
+    <div id="dialogaddcluster" title="新增忽略CPU 报警机器">
+        <fieldset>
+
+                <form enctype="multipart/form-data" action="" method="post" id="addIgnore">
+                    
+                    <div class="form-row">
+                        <label>新增机器名:</label>
+                        <input type="text" name="add_ignore_machine" maxlength="20" value=""/>
+                    </div>
+                    
+                    <div class="form-row">
+                    <label>忽略原因:</label>
+                    <textarea onpropertychange="if(value.length>100) value=value.substr(0,100)" cols="50" rows="5" name="add_ignore_reason" ></textarea>
+                    </div>
+                    <div class="submit-row">
+                        <input type="submit" value="Save" class="default" name="_save" />
+                        <input type="reset" value="Reset" class="reset" name="_reset" />
+                    </div>
+                </form>
+
+        </fieldset>
+     </div>
+     </fieldset>
+</div>
+</div>
+
+<div class="style">
+<table width="100% border="1"">
+<thead>
+<tr>
+    <th>machine_name</th>
+    <th>DNS</th>
+    <th>Importance</th>
+    <th>ObjectName</th>
+    <th>CounterValue</th>
+    <th>CpcInfo</th>
+    <th>ProcessList</th>
+    <th>Engine_Innodb</th>
+    <th>StartTime</th>
+</tr>
+</thead>
+</div>
+
+{% for row in rows %}
+<tr>
+    <td>{{row.machine_name}}</td>
+    <td>{{row.dns}}</td>
+    <td>{{row.importance}}</td>
+    <td>{{row.ObjectName}}</td>
+    <td>{{row.CounterValue}}</td>
+    <td>{{row.top_info}}</td>
+    <td><a href="smoking_show_processlist/id={{row.id}}">{{row.proc}}</a></td>
+    <td><a href="smoking_show_engine/id={{row.id}}">{{row.engine}}</a></td>
+    <td>{{row.insert_time}}</td>
+    
+</tr>
+{% endfor %}
+</table>
+{% endblock %}

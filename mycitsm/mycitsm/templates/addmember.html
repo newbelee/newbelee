@@ -1,0 +1,77 @@
+{% extends "base_site.html" %}
+{% load i18n static %}
+{% load url from future %}
+
+{% block extrastyle %}{{ block.super }}
+    <link rel="stylesheet" type="text/css" href="{% static "css/table.css" %}" />
+    <link rel="stylesheet" type="text/css" href="{% static "css/forms.css" %}" />
+{% endblock %}
+
+{% block content %}
+<div class="module">
+<div id="toolbar">
+<form action="" method="get">
+    <label for="searchbar"><img src="/static/img/icon_searchbox.png" alt="Search" /></label>
+    <input type="text" size="40" name="q" value="{{ username|default:"" }}" id="searchbar" />
+    <input type="submit" value="Search User" />
+</form>
+</div>
+</div>
+
+<form enctype="multipart/form-data" action="" method="post" id="user_form">
+
+<div class="style">
+<table width="100%" border="1">
+<thead>
+<tr>
+    <th></th>
+    <th>Username</th>
+    <th>Name</th>
+    <th>Email Address</th>
+    <th>Super User</th>
+</tr>
+</thead>
+
+{% for row in rows %}
+<tr>
+    <td class="action-checkbox"><input type="checkbox" class="action-select" value="{{row.username}}" name="_selected_action" /></td>
+    <td>{{row.username}}</td>
+    <td>{{row.name}}</td>
+    <td>{{row.email}}</td>
+    <td>
+        {% if row.is_superuser == 1 %}<img src="/static/img/icon-yes.gif"/>{% else %}<img src="/static/img/icon-no.gif" />{% endif %}
+    </td>
+</tr>
+{% endfor %}
+
+</table>
+</div>
+
+<div class="submit-row">
+    <input type="submit" value="Save" class="default" name="_save" />
+    <input type="reset" value="Reset" class="reset" name="_reset" />
+</div>
+
+<div class="paginator">
+    <span class="step-links">
+        <a href="?q={{ username|default:"" }}&page=1">first&lt;&lt;</a>
+
+        {% if rows.has_previous %}
+            <a href="?q={{ username|default:"" }}&page={{ rows.previous_page_number }}">previous</a>
+        {% endif %}
+
+        <span class="current">
+            Page {{ rows.number }} of {{ rows.paginator.num_pages }}.
+        </span>
+
+        {% if rows.has_next %}
+            <a href="?q={{ username|default:"" }}&page={{ rows.next_page_number }}">next</a>
+        {% endif %}
+
+        <a href="?q={{ username|default:"" }}&page={{ rows.paginator.num_pages }}">&gt;&gt;last</a>
+    </span>
+</div>
+
+</form>
+
+{% endblock %}

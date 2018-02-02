@@ -1,0 +1,400 @@
+{% extends "base_site.html" %}
+{% load i18n static %}
+{% load url from future %}
+
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" type="text/css" href="{% static "css/forms.css" %}" />
+<link rel="stylesheet" type="text/css" href="{% static "css/jquery-ui.css" %}" />
+
+<link rel="stylesheet" type="text/css" href="{% static "css/jquery.multiselect.css" %}" />
+<link rel="stylesheet" type="text/css" href="{% static "css/jquery.multiselect.filter.css" %}" />
+
+<link rel="stylesheet" type="text/css" href="{% static "css/dataTables.jqueryui.css" %}" />
+
+<script type="text/javascript" src="{% static "js/jquery-1.10.2.js" %}"></script>
+<script type="text/javascript" src="{% static "js/jquery-ui.js" %}"></script>
+
+<script type="text/javascript" src="{% static "js/jquery.multiselect.js" %}"></script>  
+<script type="text/javascript" src="{% static "js/jquery.multiselect.filter.js" %}"></script>
+
+<script type="text/javascript" src="{% static "js/jquery.dataTables.js" %}"></script>
+<script type="text/javascript" src="{% static "js/dataTables.jqueryui.js" %}"></script>
+    
+<style type="text/css">    
+
+    .validateTips{
+        display: inline;
+        padding: 1px 5px 1px 5px;
+    }
+
+    #dnsSwitchTable input{
+        width:86%;
+        border-radius: 4px;
+    }
+
+    #dnsSwitchTable tbody input.readonly{
+        border:1px solid #ddd;  
+        background-color:transparent;
+    }
+
+    #dnsSwitchTable input.newTarget{
+        border:1px solid #999;
+    }
+
+    thead input.readonly{
+        border:0;
+        background-color:transparent;
+    }
+
+
+</style>
+
+<script type="text/javascript">
+
+    function updateTips(tips, tipContainer){
+            tipContainer.text(tips).addClass("ui-state-error");
+            setTimeout(function(){
+                tipContainer.empty();
+                tipContainer.removeClass("ui-state-error");
+            },3000 );
+    }
+
+    function checkVal(element, name, tipContainer){
+        if(element.val() == "" || element.val() == null){
+            element.addClass("ui-state-error");
+            element.focus();
+            updateTips("需提供" + name, tipContainer)
+            return false;
+        } else {
+            return true;
+        }
+    }
+
+    function checkRegexp(element, name, regexp, formatTips, tipContainer){
+            if(!(regexp.test(element.val()))){
+                element.addClass("ui-state-error");
+                element.focus();
+                updateTips(name + '' + formatTips, tipContainer);
+                return false;
+            } else {
+                return true;
+            }
+    }
+
+    function checkFormElement(element, name, regexp, formatTips, tipContainer){
+        if (checkVal(element, name, tipContainer)){
+            if (checkRegexp(element, name, regexp, formatTips, tipContainer)){
+                return true;
+            } else {
+                return false;
+            }
+        } else {
+            return false;
+        }
+    }
+
+    function pingIP(IP) {
+        var postData = {
+            "IP" : IP,
+        },
+        pingStatus = true;
+
+        $.ajax({
+            url:"{% url 'mycitsm.views.pingIP' %}",
+            data:postData,
+            type:"POST",
+            dataType:"json",
+            async:false,   
+            success:function(result){
+                if(result.pingStatus !="0"){
+                    pingStatus = false;
+                }
+            },
+        });
+
+        return pingStatus;
+    }
+
+
+    function copyText(nowThis){
+        $("input.newTarget").val($(nowThis).val());
+    }
+
+
+    function exportToExcel(){
+        var chkReqFields = $("input.newTarget:first");
+        var ipRegexp =/^([01]?\d\d?|2[0-4]\d|25[0-5])\.([01]?\d\d?|2[0-4]\d|25[0-5])\.([01]?\d\d?|2[0-4]\d|25[0-5])\.([01]?\d\d?|2[0-4]\d|25[0-5])$/;
+        var tipContainer = $(".validateTips");
+
+        chkReqFields.removeClass("ui-state-error");
+        
+        var valid = checkFormElement(chkReqFields, 
+                "目标IP地址", 
+                ipRegexp , 
+                "格式错误: eg.192.168.98.31", 
+                tipContainer);
+
+        if(valid){
+            var pingStatus = pingIP(chkReqFields.val());
+            if(pingStatus){
+                var form = $("#dnsSwitchForm");
+                    form.attr({
+                        action:"{% url 'mycitsm.views.returnXls' %}"
+                    });
+                    form.submit();
+            }else{
+                updateTips("目标IP地址无法Ping通", tipContainer);
+                chkReqFields.focus();      
+            }
+        }
+    }
+
+    function dnsSwitch(){
+        var dnsSwitchConfContainer = $("#dnsSwitchConfContainer");
+        dnsSwitchConfContainer.dialog({
+              autoOpen:false,
+              resizable: false,
+              modal: false,
+              width:1024,
+              height:600,
+              show:{effect:"fade",duration:300},
+              hide:{effect:"fade",duration:300},
+              title:"DNS切换",
+              buttons: {
+                关闭: function() {
+                  dnsSwitchConfContainer.dialog( "close" );
+                }
+              },
+              close: function() {
+                $("form#dnsSelectFrom")[ 0 ].reset();
+                $("#dnsSwitchTableContainer").empty();
+              }       
+        });
+
+        $("button.exportToExcel").hide();
+        dnsSwitchConfContainer.dialog("open");
+    }
+
+    function setDnsSwitch(){
+        var chkReqFields = $("select#DNS");
+        var tipContainer = $(".validateTips");
+        chkReqFields.removeClass("ui-state-error");
+
+        var dnsValid = checkVal(chkReqFields,"进行切换的DNS", tipContainer);
+
+        if(dnsValid){
+            bulidDnsSwitchTable();
+        }
+    }
+
+    function bulidDnsSwitchTable(){
+        var dnsList = $("select#DNS");
+        var container = $("#dnsSwitchTableContainer");
+        container.empty();
+        container.html('<form id="dnsSwitchForm" method="POST">\
+                <table id="dnsSwitchTable" class="stripe hover order-column" cellspacing="0" width="100%">\
+                    <thead>\
+                        <tr>\
+                            <th>#</th>\
+                            <th><input type="text" size="8" class="readonly" value="Operation" ></th>\
+                            <th><input type="text" size="15" class="readonly" value="Nodename" ></th>\
+                            <th><input type="text" size="25" class="readonly" value="Zone" ></th>\
+                            <th><input type="text" size="6" class="readonly" value="RRType" ></th>\
+                            <th><input type="text" size="12" class="readonly" value="Target" ></th>\
+                            <th><input type="text" size="10" class="readonly" value="New RRType" ></th>\
+                            <th><input type="text" size="12" class="readonly" value="New Target" ></th>\
+                        </tr>\
+                    </thead>\
+                    <tbody>\
+                    </tbody>\
+                </table></form>'
+        );  
+
+        var tableRow = ''
+        var dnsParseResult = parseDns(dnsList.val());   
+        for(var i = 0; i < dnsParseResult.length; i++){
+            tableRow += '\
+            <tr>\
+            <td>' + (i + 1) + '</td>\
+            <td><input type="text"  size="8" class="readonly" value="Update" ></td>\
+            <td><input type="text"  size="15" class="readonly" value=' + dnsParseResult[i].nodeName + ' ></td>\
+            <td><input type="text"  size="25" class="readonly" value=' + dnsParseResult[i].zone + ' ></td>\
+            <td><input type="text"  size="6"  class="readonly"  value="A" ></td>\
+            <td><input type="text"  size="12" class="readonly"  value=' + dnsParseResult[i].target + ' ></td>\
+            <td><input type="text"  size="10"  class="readonly"  value="A" ></td>\
+            <td><input type="text"  size="12"  class="newTarget" value=""  onkeyup="copyText(this)" onchange="copyText(this)"/></td>\
+            </tr>';
+        }
+        
+        container.find("#dnsSwitchTable tbody").html(tableRow);
+        container.find("input").attr({"readonly":"readonly"});
+        container.find("input.newTarget").removeAttr("readonly"); 
+
+        var dnsSwitchTable = $('#dnsSwitchTable').DataTable({
+                "dom": 'ti',
+                "bSort" : false,
+                "paging": false,
+        });
+
+        var k = 0;
+        container.find("#dnsSwitchTable input, select").each(function(){
+            var r = Math.floor(k / 7), c = k % 7;
+            $(this).attr({"name":r + "-" + c});
+            k++;
+
+        });
+
+        var t = 1;
+        container.find("input.newTarget").each(function(){
+            $(this).attr({"tabindex":t});
+            t++;
+        });
+
+        container.find("input.newTarget:first").focus();
+
+        $("button.exportToExcel").show();        
+    }
+
+    function parseDns(dnsList){
+        dnsParam = $.param({"dns":dnsList},true); 
+        var postData = {
+            'dnsParam':dnsParam,
+        };
+
+        var dnsParseResult = [];
+
+        $.ajax({
+            url:"{% url 'mycitsm.views.parseDns' %}",
+            data:postData,
+            type:"POST",
+            dataType:"json",
+            async:false,
+            success:function(result){
+                dnsParseResult = result.dnsParseResult;
+            },
+        });
+
+        return dnsParseResult;
+    }
+
+
+</script>
+{% endblock %}
+
+{% block content %}
+<form enctype="multipart/form-data" action="" method="post" id="user_form">
+
+<fieldset class="module aligned">
+    <h2>基本信息</h2>
+
+    <div class="form-row">
+        <label >配置单元代码:</label>
+        <input type="text" value="{{ baseinfo.ci_code }}"/>
+    </div>
+    <div class="form-row">
+        <label >CPU核数:</label>
+        <input type="text" value="{{ baseinfo.cpu }}"/>
+    </div>
+    <div class="form-row">
+        <label >CPU型号:</label>
+        <input type="text" size="45" value="{{ baseinfo.cpu_model }}"/>
+    </div>
+    <div class="form-row">
+        <label >物理内存(GB):</label>
+        <input type="text" value="{{ baseinfo.mem_gb }}"/>
+    </div>
+    <div class="form-row">
+        <label>磁盘信息(GB):</label>
+        <textarea cols="50" rows="3">{{ baseinfo.physical_disk }}</textarea>
+    </div>
+    <div class="form-row">
+        <label >文件目录：</label>
+        <input type="text" value="{{ baseinfo.logical_disk }}"/>
+    </div>
+    <div class="form-row">
+        <label>地理位置:</label>
+        <input type="text" value="{{ baseinfo.located }}"/>
+    </div>
+    <div class="form-row">
+        <label >IP:</label>
+        <input type="text" name="ip" value="{{ baseinfo.ip_business }}"/>
+    </div>
+    <div class="form-row">
+        <label>备份网段IP:</label>
+        <input type="text" name="backupip" value="{{ baseinfo.ip_backup }}"/>
+    </div>
+    <div class="form-row">
+        <label>部门:</label>
+        <input type="text"  value="{{ baseinfo.department }}"/>
+    </div>
+    <div class="form-row">
+        <label>机器功能描述:</label>
+        <input type="text" size="45" value="{{ baseinfo.machine_function }}"/>
+    </div>
+
+    <h2>服务器DB信息</h2>
+    <div class="form-row">
+        <label>DNS:</label>
+        <textarea cols="80" rows="5" name="dns">{{ dnsinfo.dns }}</textarea>
+        <button type="button" onclick="dnsSwitch()">DNS切换</button>
+    </div>
+    <div class="form-row">
+        <label>DBinfo:</label>
+        <textarea cols="80" rows="5" name="dbinfo">{{ dbinfo.dbinfo }}</textarea>
+    </div>
+
+    <h2>服务器集群信息</h2>
+    <div class="form-row">
+        <label>集群名:</label>
+        <input type="text" value="{{ clusterinfo.cluster_name }}"/>
+    </div>
+    <div class="form-row">
+        <label>虚IP:</label>
+        <input type="text" value="{{ clusterinfo.mastervip }}"/>
+    </div>
+    <div class="form-row">
+        <label>集群管理节点:</label>
+        <input type="text" size="30" value="{{ cluseraddress }}"/>
+    </div>
+
+</fieldset>
+
+</form>
+
+<div id="dnsSwitchConfContainer" style="display:none">
+
+<div id="toolbar">    
+<form id="dnsSelectFrom" > 
+    <select id="DNS" name="DNS" multiple="multiple">
+        {% for item in dnsList %}
+            <option value="{{item.dns}}">{{item.dns}}</option>
+        {% endfor %}
+    </select> 
+          
+    <script type="text/javascript">
+        $("select#DNS").multiselect({
+                 noneSelectedText: "请选择需要进行切换的DNS",
+                 minWidth:'500',
+             }).multiselectfilter({
+      
+             });
+
+            $(".ui-multiselect-header ul.ui-helper-reset li").css({"list-style-type":"none"});
+    </script>
+    
+    <button type="button" onclick="setDnsSwitch()">确定</button>
+    <button type="button" class="exportToExcel" onclick="exportToExcel()">导出为Excel</button>
+
+    <div class="validateTips ui-state-error">仅限同IDC的A记录切换</div>   
+</form>
+</div>
+<br/>
+<div id="dnsSwitchTableContainer">
+</div>
+ 
+</div>
+
+
+
+{% endblock %}

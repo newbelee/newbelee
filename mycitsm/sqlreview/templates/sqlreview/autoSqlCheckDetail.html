@@ -1,0 +1,250 @@
+{% extends "base_site.html" %}
+{% load i18n static %}
+{% load url from future %}
+
+{% block extrastyle %}
+    {{ block.super }}
+    <link rel="stylesheet" type="text/css" href="{% static "sqlreview/css/forms.css" %}" />
+    <link rel="stylesheet" type="text/css" href="{% static "sqlreview/css/intro.css" %}" />
+    <link rel="stylesheet" type="text/css" href="{% static "sqlreview/css/table.css" %}" />
+
+    <style type="text/css">
+	    a.redLink:link, 
+		a.redLink:visited { 
+			color:red; 
+		} 
+		a.redLink:hover, 
+		a.redLink:active { 
+			color:#BB0000; 
+		}
+
+		a.greenLink:link, 
+		a.greenLink:visited { 
+			color:green; 
+		} 
+		a.greenLink:hover, 
+		a.greenLink:active { 
+			color:#00BB00; 
+		}
+		.sql {
+			word-break:break-all;
+		}
+
+	</style>
+
+{% endblock %}
+
+<a name="top"></a>
+{% block content %}
+
+<div style="color:red;">
+    <ul>
+        <li>点击审核状态查看对应的审核结果</li>
+        <li>点击明细单号对未通过审核的申请明细进行编辑</li>
+    </ul>
+</div>
+
+<div class="module">
+ <h2 style="text-align:center;font-size:15px;">SQL自动审核明细单</h2>
+</div>
+
+<div class="style">
+	<table width="100%" border="1">
+		<thead>
+			<tr>
+				<th width="65px">申请单号</th>
+				<th width="65px">明细单号</th>
+				<th >SQL语句</th>
+				<th width="65px">执行频率</th>
+				<th width="80px">申请时间</th>
+				<th width="80px">修改时间</th>
+				<th width="80px">审核时间</th>
+				<th width="65px">审核状态</th>
+			</tr>	
+		</thead>
+
+
+		{% for resultItem in resultList %}
+			<tr>
+				<td>{{resultItem.apply_id}}</td>
+				<td><a href="status={{resultItem.status}}&applyBy={{resultItem.apply_by}}&applyId={{resultItem.apply_id}}&detailId={{resultItem.detail_id}}">{{resultItem.detail_id}}</a></td>
+				<td class="sql">{{resultItem.sql}}</td>
+				<td>{{resultItem.frequencyName}}</td>
+				<td>{{resultItem.apply_date|date:"Y-m-d H:i:s"}}</td>
+				<td>{{resultItem.modify_date|date:"Y-m-d H:i:s"}}</td>
+				<td>{{resultItem.check_date|date:"Y-m-d H:i:s"}}</td>
+				<td><a href="#{{resultItem.detail_id}}" 
+						{% ifequal  resultItem.status|lower '审核未通过'%}
+							class="redLink"
+						{%else%}
+							{% ifequal  resultItem.status|lower '审核通过'%}
+								class="greenLink"
+							{% endifequal %}
+						{% endifequal %}
+						>{{resultItem.status}}
+					</a>
+				</td>
+			</tr>
+		{% endfor %}
+	</table>
+</div>
+
+
+
+<!--result body-->
+<div class="suggestion list">
+	
+	{% if resultList %}
+	{% for resultItem in resultList %}
+	<br />
+	<br />
+	<fieldset class="module aligned">
+		<h2><a name="{{resultItem.detail_id}}">申请信息</a>&nbsp;&nbsp;&nbsp;<a href="#top">返回顶部</a></h2>
+		<p>申请单号：{{resultItem.apply_id}}</p>
+		<p>明细单号：{{resultItem.detail_id}}</p>
+		<p class="sql">SQL语句：{{resultItem.sql}}</p>
+		<p>
+			执行频率：{{resultItem.frequencyName}}
+			<span style="color:red;">
+				(该执行频率下至多允许{{resultItem.joinRule}}个join，
+				执行时间不能超过{{resultItem.timeRule}}秒，
+				预估扫描行数不能超过{{resultItem.rowsRule}}行，
+				{% ifequal resultItem.filesortTemporaryRule 'Y' %}可以{% else %}不能{% endifequal %}使用filesort或temporary)
+			</span>
+		</p>
+	</fieldset>
+
+	<fieldset class="module aligned">
+		<h2>审核状态</h2>
+		<p>审核状态：
+			{% ifequal resultItem.status '审核通过' %}
+				<span style="color:green;">
+			{% endifequal %}
+				
+			{% ifequal resultItem.status '审核未通过' %}
+				<span style="color:red;">
+			{% endifequal %}
+
+			{% ifequal resultItem.status '待审核' %}
+				<span>
+			{% endifequal %}
+					{{resultItem.status}}
+				</span>
+		</p>
+	</fieldset>
+
+	<fieldset class="module aligned">
+		<h2>附加信息</h2>
+		<p>附加信息：
+			{% if resultItem.extra %}
+			<span style="color:red;">
+				{{resultItem.extra}}
+			</span>
+			{% else %}
+				无
+			{% endif %}
+		</p>
+	</fieldset>
+
+	<fieldset class="module aligned">
+		<h2>规范审核</h2>
+		<p>
+			规范性建议：
+			{% if resultItem.specification_result %}
+				<span style="color:red;">
+				{{resultItem.specification_result}}
+				</span>
+			{% else %}
+				无
+			{% endif%}
+		</p>
+	</fieldset>
+
+	<fieldset class="module aligned">
+		<h2>性能审核</h2>
+		{% ifequal resultItem.status "待审核" %}
+			<p>待审核</p>
+		{% else %}
+			<p>是否超时：
+				{% ifequal resultItem.timeout 'Y' %}
+				<span style="color:red;">
+					提交的语句运行时间超出了设定的超时时间
+				</span>
+				{% else %}
+					否
+				{% endifequal %}
+			</p>
+			
+			<p>是否包含错误或警告：
+				{% if resultItem.sql_error_or_warning  %}
+				<span style="color:red;">
+					提交的语句包含语法错误或警告信息：{{resultItem.sql_error_or_warning}}
+				</span>
+				{% else %}
+				否
+				{% endif%}
+			</p>
+			
+			<p>执行时间：{{resultItem.time}}</p>
+			
+			<p>影响行数：{{resultItem.rows}}</p>
+			
+			<p>执行计划：
+				{% if resultItem.execute_plan %}
+					{{resultItem.execute_plan}}
+				{% else %}
+					无
+				{% endif %}
+			</p>
+			
+			<p>是否存在未使用索引的情况：
+				{% if resultItem.not_using_index %}
+				<span style="color:red;">
+					存在如下未使用索引的情况:
+				</span>
+					{{resultItem.not_using_index}}
+				{% else %}
+					否
+				{% endif %}
+			</p>
+			
+			<p>是否存在扫描行数过多的情况：
+				{% if resultItem.excessive_scan_rows %}
+				<span style="color:red;">
+					存在如下扫描行数过多的情况:
+				</span>
+					{{resultItem.excessive_scan_rows}}
+				{% else %}
+					否
+				{% endif %}
+			</p>
+			
+			<p>是否存在使用文件排序或临时表的情况的情况：
+				{% if resultItem.filesort_or_using_temporary %}
+				<span style="color:red;">
+					存在如下使用filesort或temporary的情况:
+				</span>
+					{{resultItem.filesort_or_using_temporary}}
+				{% else %}
+					否
+				{% endif %}
+			</p>
+		
+		{% endifequal %}
+	</fieldset>
+	
+	{% endfor %}
+	{% endif %}
+</div>
+<!--end of result body-->
+
+<div>
+
+    <div style="padding:0 0 10px 0;">
+        <a href="/sqlreview/autoSqlCheck"><button type="button" >返回</button></a>
+        <a href="/sqlreview/autoSqlCheck/addAutoSqlCheckApply"><button type="button" >新建申请单</button></a>
+    </div>
+
+<div>
+
+{% endblock %}

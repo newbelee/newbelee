@@ -1,0 +1,34 @@
+{% extends "base_site.html" %}
+{% load i18n static %}
+{% load url from future %}
+
+{% block extrastyle %}{{ block.super }}<link rel="stylesheet" type="text/css" href="{% static "css/forms.css" %}" />{% endblock %}
+
+{% block content %}
+<form enctype="multipart/form-data" action="" method="post" id="perm_form">
+
+<fieldset class="module aligned">
+    <h2>Permission of Group [{{groupname}}]</h2>
+    {% for l in list %}
+    <div class="form-row">
+        <label>{{l.model}}</label>
+        {% for p in l.permission %}
+        <p>
+            <input type="checkbox" id="{{p.id}}" value="{{p.id}}" name="perm_checkbox_list"
+                {% if p.has_perm %} checked="checked" {% endif %} 
+                {% ifequal  p.id|lower "5" %} disabled="disabled" {% endifequal%}
+            />
+            <label for="{{p.id}}" class="vCheckboxLabel"> {{p.name}} </label>
+        </p>
+        {% endfor %}
+    </div>
+    {% endfor %}
+</fieldset>
+
+<div class="submit-row">
+    <input type="submit" value="Save" class="default" name="_save" />
+    <input type="reset" value="Reset" class="reset" name="_reset" />
+</div>
+
+</form>
+{% endblock %}

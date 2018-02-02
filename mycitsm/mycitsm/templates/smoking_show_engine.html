@@ -1,0 +1,18 @@
+{% extends "base_site.html" %}
+{% load i18n static %}
+{% load url from future %}
+
+{% block extrastyle %}{{ block.super }}
+    <link rel="stylesheet" type="text/css" href="{% static "css/forms.css" %}" />
+{% endblock %}
+
+{% block content %}
+<form enctype="multipart/form-data" action="" method="post" id="form">
+<fieldset class="module aligned">
+    <h2>Show engine innodb status</h2>
+     {% autoescape off %}
+     {{ engine_status.engine_info }}            
+     {% endautoescape %}
+</fieldset>
+</form>
+{% endblock %}

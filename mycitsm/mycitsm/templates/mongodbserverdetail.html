@@ -1,0 +1,66 @@
+{% extends "base_site.html" %}
+{% load i18n static %}
+{% load url from future %}
+
+{% block extrastyle %}{{ block.super }}<link rel="stylesheet" type="text/css" href="{% static "css/forms.css" %}" />{% endblock %}
+
+{% block content %}
+<form enctype="multipart/form-data" action="" method="post" id="user_form">
+
+<fieldset class="module aligned">
+    <h2>基本信息</h2>
+
+    <div class="form-row">
+        <label >配置单元代码:</label>
+        <input type="text" value="{{ baseinfo.ci_code }}"/>
+    </div>
+    <div class="form-row">
+        <label >CPU核数:</label>
+        <input type="text" value="{{ baseinfo.cpu }}"/>
+    </div>
+    <div class="form-row">
+        <label >CPU型号:</label>
+        <input type="text" size="45" value="{{ baseinfo.cpu_model }}"/>
+    </div>
+    <div class="form-row">
+        <label >物理内存(GB):</label>
+        <input type="text" value="{{ baseinfo.mem_gb }}"/>
+    </div>
+    <div class="form-row">
+        <label>磁盘信息(GB):</label>
+        <textarea cols="50" rows="3">{{ baseinfo.physical_disk }}</textarea>
+    </div>
+    <div class="form-row">
+        <label >文件目录：</label>
+        <input type="text" value="{{ baseinfo.logical_disk }}"/>
+    </div>
+    <div class="form-row">
+        <label>地理位置:</label>
+        <input type="text" value="{{ baseinfo.located }}"/>
+    </div>
+    <div class="form-row">
+        <label >IP:</label>
+        <input type="text" name="ip" value="{{ baseinfo.ip_business }}"/>
+    </div>
+    <div class="form-row">
+        <label>备份网段IP:</label>
+        <input type="text" name="backupip" value="{{ baseinfo.ip_backup }}"/>
+    </div>
+    <div class="form-row">
+        <label>部门:</label>
+        <input type="text"  value="{{ baseinfo.department }}"/>
+    </div>
+    <div class="form-row">
+        <label>机器功能描述:</label>
+        <input type="text" size="45" value="{{ baseinfo.machine_function }}"/>
+    </div>
+
+    <h2>服务器DB信息</h2>
+    <div class="form-row">
+        <label>DNS:</label>
+        <textarea cols="80" rows="5" name="dns">{{ dnsinfo.dns }}</textarea>
+    </div>
+</fieldset>
+
+</form>
+{% endblock %}

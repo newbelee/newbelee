@@ -1,0 +1,151 @@
+{% extends "base_site.html" %}
+{% load i18n static %}
+{% load url from future %}
+
+{% block extrastyle %}
+{{ block.super }}
+    <link rel="stylesheet" type="text/css" href="{% static "css/forms.css" %}" />
+{% endblock %}
+
+{% block extrahead %}
+    <script type="text/javascript" src="{% static "js/jquery.min.js" %}"></script>
+   
+    <script>
+        function appendlist(){
+            var list=$("ol li:first").clone()
+            list.find("#extra").css("display","none");
+            $("ol").append(list);
+        }
+       
+        function removelist(nowthis){
+            if ($("ol li").size()==1){
+                alert("必须至少包含一条SQL语句！");
+                return;
+            }
+            $(nowthis).parent().remove();
+        }
+
+        function sendDatabaseId(nowThis){
+            var databaseId = $(nowThis).val(); 
+            $.post("{% url 'sqlreview.views.checkPostDbInReview' %}", 
+            {'databaseId':databaseId},
+            function(data){
+                if (data.dbExistInReview == "F"){
+                    $("#databaseNotExistInReviewHint").html("对不起，当前选择的数据库在Review环境中尚不存在");
+                    $("#submitButton").attr("disabled","disabled"); 
+                }
+                else{
+                    $("#databaseNotExistInReviewHint").html("");
+                    $("#submitButton").removeAttr("disabled"); 
+                }
+            },
+            "json"
+            );
+        };
+
+        $(document).ready(function(){
+             sendDatabaseId($("#databaseId"));
+        });
+
+    </script>
+{% endblock %}
+
+{% block content %}
+
+<div style="color:red;">
+    <ul>
+		<li>审核结果仅适用于当前数据环境（数据量、分布、索引情况等）在将来可能会发生变化</li>
+        <li>仅支持SELECT/INSERT/DELETE/UPDATE语句</li>
+        <li>每项仅能包含一条SQL语句</li>
+        <li>请确保SQL语句语法语义准确无误</li>
+        <li>请在SQL语句中提供实际的参数</li>
+        <li>各执行频率对应的审核规则如下：</li>
+    </ul>
+        <table>
+                <tr>
+                    <td>frequency</td>
+                    <td>join</td>
+                    <td>time</td>
+                    <td>rows</td>
+                    <td>filesort/temporary</td>
+                </tr>
+                {% for freq in freqList %}
+                <tr>
+                    <td>{{freq.frequency}}</td>
+                    <td>{{freq.join}}</td>
+                    <td>{{freq.time}}</td>
+                    <td>{{freq.rows}}</td>
+                    <td>{{freq.filesort_temporary}}</td>
+                </tr>
+                {% endfor %}
+        </table>
+</div>
+
+<br />
+
+<div>
+    {% if errors%}
+    {% for error in errors %}
+    <p class="errornote">
+        {{ error }}
+    </p>
+    {% endfor %}
+{% endif %}
+</div>
+
+<form enctype="multipart/form-data" action="" method="post" id="apply_form">
+
+<fieldset class="module aligned">
+    <div class="form-row">
+        <label class="required">目标数据库:</label>
+        <select id="dbId" name="dbId" onchange="sendDatabaseId(this)">
+            {% for db in dbList %}
+                <option value="{{db.id}}" {%ifequal dbId|lower db.id|lower %}selected="selected"{% endifequal %}>{{db.Upload_DBName}}</option>
+            {% endfor %}
+        </select>
+        <span id="databaseNotExistInReviewHint" style='color:red;'></span>
+    </div>
+    <div class="form-row">
+        <label class="required">SQL语句:</label>
+        <input type="button" onclick="appendlist()" id="addbtn" value="添加SQL语句" />
+        <div>
+        <ol>
+            {% if sqlFreqList %}
+            {% for item in sqlFreqList %}
+            <li>
+                <span>SQL:</span>
+                <textarea rows='6' cols='60' name = "sql">{{item.0}}</textarea>
+                <span>执行频率:</span>
+                <select name = "freq">
+                    {% for freq in freqList %}
+                    <option value = "{{freq.id}}" {% ifequal freq.id|lower item.1|lower %}selected="selected"{% endifequal %}>{{freq.frequency}}</option>
+                    {% endfor %}
+                </select>
+                 <input style="margin-left:2em;" type='button' onclick='removelist(this)' id='delbtn' value='删除' />
+            </li>
+            {%  endfor %}
+            {% else %}
+                <li>
+                <span>SQL:</span>
+                <textarea rows='6' cols='60' name = "sql"></textarea>
+                <span>执行频率:</span>
+                <select name = "freq">
+                    {% for freq in freqList %}
+                    <option value = "{{freq.id}}" >{{freq.frequency}}</option>
+                    {% endfor %}
+                </select>
+                 <input style="margin-left:2em;" type='button' onclick='removelist(this)' id='delbtn' value='删除' />
+            </li>
+            {% endif %}
+        </ol>
+    </div>
+    </div>
+</fieldset>
+
+<div class="submit-row">
+    <span>(每项只能包含一条SQL语句)</span>
+    <input type="submit" id="submitButton" value="提交" class="default" name="submit" />
+</div>
+
+</form>
+{% endblock %}

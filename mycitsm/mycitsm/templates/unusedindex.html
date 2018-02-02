@@ -1,0 +1,126 @@
+{% extends "base_site.html" %}
+{% load i18n static %}
+{% load url from future %}
+
+{% block extrastyle %}{{ block.super }}
+    <link rel="stylesheet" type="text/css" href="{% static "css/forms.css" %}"/>
+    <link rel="stylesheet" type="text/css" href="{% static "css/table2.css" %}"/>
+    <link rel="stylesheet" type="text/css" href="{% static "css/jquery-ui-1.10.4.custom.css" %}" />
+    <link rel="stylesheet" type="text/css" href="{% static "css/jquery-ui.css" %}" />
+    <script type="text/javascript" src="{% static "js/jquery-1.10.2.js" %}"></script>
+    <script type="text/javascript" src="{% static "js/jquery-ui.js" %}"></script>
+{% endblock %}
+
+{% block extrahead %}
+ <script>
+  $(function() {
+  $( "#dialog" ).dialog({
+  autoOpen: false,
+  maxHeight: 600,
+  maxWidth: 550,
+  minHeight:300,
+  minWidth:550,
+  modal: true,
+  show: {
+  //effect: "blind",
+  //duration: 500
+  },
+  hide: {
+  }
+  });
+  $( "#opener" ).click(function() {
+  $( "#dialog" ).dialog( "open" );
+  });
+    
+$( ".accordion" ).accordion({
+    collapsible: true,
+    active:false
+    });
+
+});
+ </script>
+<script type="text/javascript">
+$(document).ready(function(){
+          $("#myModal").hide();
+          });
+function insert_dealindex(obj,dbname,tablename,indexname,type)
+{
+if (confirm("确定对索引"+indexname+" 执行"+type+"操作?"))
+  {
+    $.post("{% url 'mycitsm.views.insert_dealindex' %}",
+        {'dbname':dbname,'tablename':tablename,'indexname':indexname,'type':type},
+        function(ret){
+            if(ret=='1'){ 
+                alert("提交成功！");
+                $(obj).parents('tr').remove();
+
+            }
+            else if(ret=='2'){
+                alert("您无权限执行该操作！");
+            }
+                else{
+                alert("提交失败！");
+                }
+
+        }
+    );
+  }
+
+else
+  {
+  alert("放弃操作!");
+  }
+}
+
+  function show_wait(){
+     $("#myModal").show();
+    }
+
+</script>
+
+
+{% endblock %}
+
+{% block content %}
+
+<form action="" method="get">
+    <label style="margin-left:5px;" for="searchbar"><img src="/static/img/icon_searchbox.png" alt="Search" /></label>
+    <input type="text" size="30" name="q" value="{{ keyword|default:"" }}" id="searchbar" />
+    <input type="submit" value="Search Server" />
+</form>
+
+<fieldset class="module aligned">
+    <fieldset class="module aligned">
+    <h2 style="margin-bottom:5px;">数据库未使用索引列表</h2>
+    <div class="style">
+    <table width="100%">
+    <thead>
+    <tr>
+        <th>DB</th>
+        <th>Table</th>
+        <th>Table_Rows</th>
+        <th>Index</th>
+        <th>Index_Colun</th>
+        <th>DB_Department</th>
+        <th>DB_Owner</th>
+        <th>OPERATION</th>
+    </tr>
+    </thead>
+    {% for row in unusedindexinfoall %}
+    <tr>
+        <td>{{row.dbname}}</td>
+        <td>{{row.tablename}}</td>
+        <td>{{row.table_rows}}</td>
+        <td>{{row.indexname}}</td>
+        <td>{{row.colunname}}</td>
+        <td>{{row.Department}}</td>
+        <td>{{row.owner}}</td>
+        <td><a href="#" onclick="insert_dealindex(this,'{{row.dbname}}','{{row.tablename}}','{{row.indexname}}','忽略')">忽略</a> <a href="#" onclick="insert_dealindex(this,'{{row.dbname}}','{{row.tablename}}','{{row.indexname}}','清除')">清除</a></td>
+    </tr>
+    {% endfor %}
+    </div>
+    </table>
+    </fieldset>
+
+
+{% endblock %}

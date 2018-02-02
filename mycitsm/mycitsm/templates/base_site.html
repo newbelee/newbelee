@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% load i18n static %}
+{% load url from future %}
+
+{% block title %}{{ title }} | {% trans 'MySQL Tools' %}{% endblock %}
+
+{% block extrastyle %}{{ block.super }}
+<link rel="stylesheet" type="text/css" href="{% static "css/menu.css" %}" />
+
+{% endblock %}
+
+{% block branding %}
+<h1 id="site-name">{% trans 'MySQL Tools' %}</h1>
+{% endblock %}
+
+{% block nav-global %}
+<div id="nav-menu">
+<div class="menu">
+<ul>
+<li><a href="{% url 'mycitsm.views.admin' %}">后台管理</a>
+    <ul>
+    <li><a href="{% url 'mycitsm.views.showuser' %}">用户管理</a></li>
+    <li><a href="{% url 'mycitsm.views.showgroup' %}">组管理</a></li>
+    <li><a href="{% url 'mycitsm.views.showperm' %}">权限管理</a></li>
+    </ul>
+</li>
+
+<li><a href="#">DB管理</a>
+    <ul>
+    <li><a href="{% url 'mycitsm.views.dblist' %}">数据库列表</a></li>
+    <li><a href="{% url 'mycitsm.views.dbcapacitymonitor' %}">DB容量监控</a></li>
+    <li><a href="{% url 'mycitsm.views.sqltoolsgrants' %}">数据查询工具权限</a></li>
+    <li><a href="{% url 'mycitsm.views.sqltoolsgrants_add' %}">数据工具权限申请</a></li>
+    <li><a href="{% url 'mycitsm.views.updatesqlList' %}">在线数据修改</a></li>
+
+    </ul>
+</li>
+<li><a href="#">服务器管理</a>
+    <ul>
+    <li><a href="{% url 'mycitsm.views.dbserverinfo' %}">MySQL</a></li>
+    <li><a href="{% url 'mycitsm.views.slowlogmonitor' %}">慢日志监控</a></li>
+
+    </ul>
+</li>
+
+<li style="float:right;"><a>Q&A</a>
+    <ul>
+        <li><a onclick="window.open('http://wiki.yonghuivip.com/pages/viewpage.action?pageId=1344245','开发规范')">MySQL开发规范</a></li>
+        <li><a onclick="window.open('http://wiki.yonghuivip.com/pages/viewpage.action?pageId=2299800','mysql tools 工具说明')">mysqltools说明</a></li> 
+    </ul>
+</li>
+
+
+</ul>
+
+<br class="clear" />
+
+</div>
+</div>
+{% endblock %}
