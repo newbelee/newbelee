@@ -98,8 +98,13 @@
 
     <script src="{% static "sqlreview/js/jquery-ui.js" %}"></script>
 
+    <link rel="stylesheet" type="text/css" href="{% static "css/chosen.css" %}" />
+    <script language="javascript" src="{% static "js/chosen.jquery.js" %}"></script>
+    <script language="javascript" src="{% static "js/chosen.proto.js" %}"></script>
+
     <link rel="stylesheet" type="text/css" href="{% static "css/jquery.dataTables.min.css" %}" />
     <link rel="stylesheet" type="text/css" href="{% static "css/buttons.dataTables.min.css" %}" />
+
 
     <script language="javascript" src="/static/js/jquery.dataTables.min.js"></script>
 
@@ -123,6 +128,7 @@
         当我们双击文本内容就会自动变为一行显示，所以只能用ie的专有断行属性“word-break或word-wrap”控制其断行)*/  
       }
     </style>  
+
 
     <script type="text/javascript">
         
@@ -148,18 +154,14 @@
             });
             $("#dataResult").DataTable({
               dom: 'Bfrtip',
-              "bProcessing" : true,
-              "aLengthMenu" : [10, 100, 1000],
-              "iDisplayLength" : 10,
-              "aaSorting" : [],
-              buttons: [
-                  'excelHtml5','pageLength'
+               buttons: [
+                  'copyHtml5',
+                  'excelHtml5',
+                  'csvHtml5'           
               ]
             });
-
+            $("#dbname").chosen();   
         });
-    
-
     </script>
 {% endblock %}
 
@@ -169,14 +171,13 @@
 
 <div id="formContainer">
         <form action="" method="post" onsubmit="waitServerResponse()">
-            <input style="visibility:hidden;height:0px" id = "mid" name ="mid" value="{{ mid }}"></input>
+        	<input style="visibility:hidden;height:0px" id = "mid" name ="mid" value="{{ mid }}"></input>
             <table>
             <tr>
                 <th width="115px"><p>请选择数据库:</p></th>
                 <td>
-                    <select id="dbname"  name="dbname""
+                    <select id="dbname"  name="dbname"" style="width:200px;">
                     {% if action == "exec" %} disabled="disabled" {% endif %}
-                    style="width:200px;" class="chosen-select-no-results">
                     {% for item in dblist %}
                         <option value="{{ item.Upload_DBName }}" {% ifequal item.Upload_DBName|lower databaseName %} selected="selected" {% endifequal %}>{{item.Upload_DBName}}</option>
                     {% endfor  %}
@@ -194,20 +195,24 @@
                     </select>
                     <span id="databaseNotExistInReviewHint" style='color:red;'></span>
                 </td>                
-                {% endif %}                
+                {% endif %}              
 
             </tr>
             </table>
            
            {{ form.as_p}}
-
             
             <div class="submit-row">
                 <span>(一次只能提交一条 sql)</span>
+                {% if action == "edit" or action == "add" %}
                 <input type="button" id="resetButton" value="重置内容" onclick="javascript:mySqlEditor.setValue('')" />
-                <input type="submit" id="formatsqlButton" name="formatsql" value="SQL格式化"/>
-                <input type="submit" id="getExecutePlanButton" name="getExecutePlan" value="查看执行计划"/>
-                <input type="submit" id="checksqlButton" name="executesql"  value="查  询"  class="default"/>
+                {% endif %}
+                {% if action == "edit" or action == "add" %}
+                <input type="submit" id="checksqlButton" name="{{ action }}" {% if action == "edit" and status != "0" %} disabled="disabled" {% endif %} value="{{ actionname }}"  class="default"/>
+                {% endif %}
+                {% if action == "exec" and status == "1" %}
+                <input type="submit" id="exec" name="exec"  value="执  行"  class="default"/>
+                {% endif %}
 
             </div>
         </form>
@@ -294,34 +299,9 @@
    {% endif %}
    </div>
    
-   
-   <div class="error list">
-   {%if unformattedSqlList  %}
-   <fieldset class="module aligned"> 
-        <table width="100%" >
-        <tr>
-            <th width="115px"><p>没有被正确格式化的SQL语句：</p></th>
-            <td>
-               <table width="100%" style="border:1px solid #ddd;">
-                    <caption>关于SQL语句格式化</caption>
-                    <tr class='content'>
-                        <td>
-                        <p>该格式化工具可以格式化通常的SQL语句，但对于存在语法错误或者个别较特殊的SQL语句可能不被支持！</p>
-                        </td>
-                     </tr>
-                </table>
-                {%for unformattedSqlItem in unformattedSqlList %}
-                  <p style="color:red;" class="sql">{{unformattedSqlItem}};</p>
-                {% endfor %}
-            </td>
-        </tr>
-        </table>
-   </fieldset>
-   {% endif %}
-   </div>
    <div class="list">
    {%if sqlResultDict %}
-   <p style="margin-top:15px;">返回结果( 限制在 100 条以内 ):
+   <p style="margin-top:15px;">返回结果( 限制在 10000 条以内 ):
       <span style="color:blue;">执行时间: {{ time }} (秒) ; 返回行数: {{ rowcount }}</span>
     </p>
     <table width="100%" id="dataResult" class="">

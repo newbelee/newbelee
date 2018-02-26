@@ -63,24 +63,7 @@
         <label>用户名(可任意):</label>
         <input type="text" name="username" />
     </div>
-</fieldset>
 
-<fieldset class="module aligned">
-    <h2>群集|应用信息</h2>
-    <div class="form-row">
-        <input type="radio" name="appname" id="app1" onchange="setappinfo(this)"/>
-        <label style="display:inline;float:none;margin-right:2em;" for="app1" >群集名称:</label>
-        <input type="text" name="appname" style="display:inline;float:none;" class="appinfo"/>
-        <label style="display:inline;float:none;" >群集虚IP:</label>
-        <input type="text" name="vip" class="appinfo"/>
-    </div>
-    <div class="form-row">
-        <input type="radio" name="appname" id="app2" onchange="setappinfo(this)"/>
-        <label style="display:inline;float:none;margin-right:2em;" for="app2" >应用名称:</label>
-        <input type="text" name="appname" style="display:inline;float:none;" class="appinfo"/>
-        <p class="help">如不是群集，也没有域名，请输入应用信息</p>
-    </div>
-</fieldset>
 
 <div class="submit-row">
     <input type="submit" value="提交" class="default" name="_save" />

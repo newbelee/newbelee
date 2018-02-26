@@ -12,6 +12,10 @@ import os
 from django.http import StreamingHttpResponse
 import chardet
 import MySQLdb
+from django.core.paginator import Paginator
+from django.core.paginator import EmptyPage
+from django.core.paginator import PageNotAnInteger
+
 
 limit_count = 10000
 limit_time = 90
@@ -305,7 +309,6 @@ def audit_manage(request):
     errors = []
     param = []
     dblist = getdblist(request)
-    print dblist
                 
     if request.method == "GET":
         action = request.GET.get("action", "")
@@ -354,6 +357,7 @@ def audit_manage(request):
         exec_errors=[]
         field_desc=[]
         sqlResultDict=[]
+        excel_name = ''
         errors=[]
         form = sqlreviewForm(request.POST)
         if request.POST.get('add'):
@@ -484,6 +488,7 @@ def audit_manage(request):
                 exec_errors=__result["exec_errors"]
                 sqlResultDict=__result["sqlResultDict"]
                 field_desc=__result["field_desc"]
+                excel_name = __result["excel_name"]
             else:
                 error_mess = {"sql":"","error":"TIMEOUT: max execute time is : {0}s".format(limit_time)}
                 exec_errors.append(error_mess)
@@ -503,15 +508,26 @@ def audit_manage(request):
             sql_update = "update sqltools_selectsql_list set status=4 where id=%s"
             cursor = connection.cursor()
             cursor.connection.autocommit(True)
-            cursor.execute(sql_update, [sql_id])
+#            cursor.execute(sql_update, [sql_id])
+            cursor.execute(sql_update, [10000])
             cursor.close()
-
+            # 分页测试
+            paginator = Paginator(sqlResultDict, 100)
+            page = request.GET.get('page')
+            try:
+                sqlResultDict = paginator.page(page)
+            except PageNotAnInteger:
+                sqlResultDict = paginator.page(1)
+            except EmptyPage:
+                sqlResultDict = paginator.page(paginator.num_pages)
+            xlsx_name = excel_name.split('/')[1]
             context={'form':form,
                      'title':'在线查询',
                      'errorSqlList':exec_errors,
                      'sqlResultDict':sqlResultDict,
                      'field_desc':field_desc,
                      'width':str(100/len(field_desc)) +'%',
+                     'excel_name':xlsx_name,
                      'dblist':dblist,
                      'dbname': db_name,
                      'time': '{}'.format(round(timer.duration(), 2)),
@@ -1345,23 +1361,21 @@ def exec_sql(request, dbname):
                 if sql_item.get_type() not in ["INSERT", "UPDATE", "DELETE"]:
                     sqlErrorDict['sql']=str(sql_item)
                     sqlErrorDict['error']="SQL must be in [ INSERT, UPDATE, DELETE ]"
-                    chk_errors.append(sqlErrorDict)                
+                    chk_errors.append(sqlErrorDict)   
+                    return (-1, chk_errors, [])             
                 else:
                     if str(sql_item).strip()[-1:] != ";":
                         exec_sql = str(sql_item).strip() + ";"
                     else:
                         exec_sql = str(sql_item).strip()
-
-            if len(chk_errors) > 0:
-                return (-1, chk_errors, [])
-
-            ince_conn=MySQLdb.connect(host=str(dbconn[0]["host"]), user=product_user, passwd=product_passwd, db=dbname, port=int(dbconn[0]["port"]), charset='utf8')
-            ince_conn.set_character_set('utf8')
-            ince_cur=ince_conn.cursor()
-            ret=ince_cur.execute(exec_sql)
-            ince_conn.commit()
-            ince_cur.close()
-            ince_conn.close()
+                    ince_conn=MySQLdb.connect(host=str(dbconn[0]["host"]), user=product_user, passwd=product_passwd, db=dbname, port=int(dbconn[0]["port"]), charset='utf8')
+                    ince_conn.set_character_set('utf8')
+                    ince_cur=ince_conn.cursor()
+                    ret=ince_cur.execute(exec_sql)
+                    ince_conn.commit()
+                    ince_cur.close()
+                    ince_conn.close()                
+           
         else:
             exec_sql="/*--user=%s;--password=%s; --enable-execute;--host=%s;--port=%s;*/\
                         inception_magic_start;\

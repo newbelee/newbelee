@@ -156,8 +156,6 @@
               dom: 'Bfrtip',
                buttons: [
                   'copyHtml5',
-                  'excelHtml5',
-                  'csvHtml5'           
               ]
             });
             $("#dbname").chosen();   
@@ -179,7 +177,7 @@
                     <select id="dbname"  name="dbname"" style="width:200px;">
                     {% if action == "exec" %} disabled="disabled" {% endif %}
                     {% for item in dblist %}
-                        <option value="{{ item.id }}" {% ifequal item.id|lower databaseId %} selected="selected" {% endifequal %}>{{item.Upload_DBName}}</option>
+                        <option value="{{ item.Upload_DBName }}" {% ifequal item.Upload_DBName|lower databaseName %} selected="selected" {% endifequal %}>{{item.Upload_DBName}}</option>
                     {% endfor  %}
                     </select>
                     <span id="databaseNotExistInReviewHint" style='color:red;'></span>
@@ -238,6 +236,9 @@
         });
         mySqlEditor.setOption('theme','eclipse');
     </script>
+    {% if excel_name %}
+        <a href='http://192.168.175.129:8080/{{excel_name}}' style="font-size:15px;" >下载完整excel数据</a>
+    {% endif %}
   
     <div id="myModal" style="display: none;position:fixed;top:58%;border: 1px solid #aaaaaa;">
         <div style="text-align: center">
@@ -298,11 +299,11 @@
    </fieldset>
    {% endif %}
    </div>
-   
+
    <div class="list">
    {%if sqlResultDict %}
    <p style="margin-top:15px;">返回结果( 限制在 10000 条以内 ):
-      <span style="color:blue;">执行时间: {{ time }} (秒) ; 返回行数: {{ rowcount }}</span>
+      <span style="color:blue;">执行时间: {{ time }} (秒) ; 页面只返回行数: {{ rowcount }}</span>
     </p>
     <table width="100%" id="dataResult" class="">
     <thead>

@@ -13,116 +13,22 @@ import ldap
 reload(sys)
 sys.setdefaultencoding('UTF-8')
 
-ldappath = "ldap://8"#ldap服务器地址
-baseDN = "dc=ldap,dc=google,dc=com"#根目录
-ldappass= "sb_google"  
-ldapuser = "google_sb"
 
-#获取用户的dn
-def _validateLDAPUser(user):
-    try:
-        l = ldap.initialize(ldappath)
-        l.protocol_version = ldap.VERSION3
-        l.simple_bind(ldapuser,ldappass)
-
-        searchScope  = ldap.SCOPE_SUBTREE
-        searchFiltername = "uid"
-        retrieveAttributes = None
-        searchFilter = '(' + searchFiltername + "=" + user +')' 
-
-        ldap_result_id = l.search(baseDN, searchScope, searchFilter, retrieveAttributes)
-        result_type, result_data = l.result(ldap_result_id,1)
-
-        if(not len(result_data) == 0):
-            return 1, result_data[0][0], result_data
-        else:
-            return 0, ''
-
-    except ldap.LDAPError, e:
-        return 0, ''
-    except Exception, e:
-        return 0, ''
-
-    finally:
-        l.unbind()
-        del l
-
-#连接超时，尝试多次连接
-def GetDn(user, trynum = 1):
-    i = 0
-    isfound = 0
-    foundResult = ""
-    while(i < trynum):
-        isfound, foundResult, userinfo = _validateLDAPUser(user)        
-        if(isfound):
-          break
-        i+=1
-    return foundResult,userinfo
-
-# 0: 登录成功, -1: 失败
-def LDAPLogin(userName,Password):
-    try:
-        if(Password==""):
-            print "PassWord empty"
-            return
-        dn,userinfo = GetDn(userName,1)
-        if(dn==''):
-            print "Not Exist User"
-            return
-        my_ldap = ldap.initialize(ldappath)
-        print my_ldap.simple_bind_s(dn,Password)
-
-        return 0, userinfo
-    except Exception,e:
-        print str(e)
-        return 0,  {'userPassword': ['{MD5}lueSGJZetyySpUndWjMBEg=='],'cn': ['django'], 'sn': ['django']  } 
-        # 
-# 使用 ldap 认证
+# 使用 django authenticate函数认证
 def login(request):
     errors=[]
-    retno = 0
-    userinfo = None
     if request.method=='POST':
         if not request.POST.get('username',''):
             errors.append('Enter username.')
-        else:
-            username = request.POST.get('username','')
-
         if not request.POST.get('password',''):
-            errors.append('Enter password.')    
-        else:
-            password = request.POST.get('password','')
-        email = ""
-
+            errors.append('Enter password.')
         if not errors:
-
-            retno, userinfo = LDAPLogin(username, password)
-            if retno == 0:
-            #    if userinfo[0][1].has_key("mail"):
-            #        email = userinfo[0][1]["mail"][0]
-
-                user = authenticate(username=request.POST.get('username'), password=request.POST.get('password'))
-                if user is None:                    
-                    # 用户不存在或者密码错误，创建新的
-                    try:
-                        user = User.objects.create_user(username, email, password)
-                        user.last_name = username
-                        user.first_name = username
-                        user.is_staff = 1
-                        user.save()
-                    except Exception as e:
-                        # 重置密码, 以 ladp 中为准
-                        user = User.objects.get(username=username)
-                        user.set_password(password)
-                        user.save()
-                        user = authenticate(username=request.POST.get('username'), password=request.POST.get('password'))
-
-                user.backend = 'django.contrib.auth.backends.ModelBackend'
+            user = auth.authenticate(username=request.POST.get('username'),password=request.POST.get('password'))
+            if user is not None and user.is_active:
                 auth.login(request,user)
                 return HttpResponseRedirect("/")
             else:
                 errors.append("Sorry, that's not a valid username or password.")
-
     return render_to_response('login.html',{
         'errors':errors,
         'username':request.POST.get('username',''),
@@ -130,37 +36,16 @@ def login(request):
         'title':"Login",
     })
 
+
+# 登出
 def logout(request):
-    logout(request)
-    return HttpResponseRedirect("/login/")
-
-
-# def login(request):
-#     errors=[]
-#     if request.method=='POST':
-#         if not request.POST.get('username'):
-#             errors.append('Enter username.')
-#         if not request.POST.get('password'):
-#             errors.append('Enter password.')
-#         if not errors:
-#     	    user = authenticate(username=request.POST.get('username'), password=request.POST.get('password'))
-#             if user is not None and user.is_active:
-#                 auth.login(request,user)
-#                 return HttpResponseRedirect("/")
-#             else:
-#                 errors.append("Sorry, that's not a valid username or password.")
-#     return render_to_response('login.html',{
-#         'errors':errors,
-#         'username':request.POST.get('username',''),
-#         'password':request.POST.get('password',''),
-#         'title':"Login",
-#     })
+    auth.logout(request)
+    return HttpResponseRedirect("/accounts/login/")
 
 # 用户注册
 def userreg(request):
     errors=[]
     if request.method=='POST':
-        print request.POST.get('pwd')
         if not request.POST.get('username'):
             errors.append('Enter username.')
         if not request.POST.get('pwd'):
@@ -204,35 +89,6 @@ def userreg(request):
     })
 
 
-'''
-不再使用，改用直接 auth 
-def login(request):
-    errors=[]
-    if request.method=='POST':
-        if not request.POST.get('username',''):
-            errors.append('Enter username.')
-        if not request.POST.get('password',''):
-            errors.append('Enter password.')
-        if not errors:
-            user = auth.authenticate(username=request.POST.get('username'),password=request.POST.get('password'))
-            if user is not None and user.is_active:
-                auth.login(request,user)
-                return HttpResponseRedirect("/index/")
-            else:
-                errors.append("Sorry, that's not a valid username or password.")
-    return render_to_response('login.html',{
-        'errors':errors,
-        'username':request.POST.get('username',''),
-        'password':request.POST.get('password',''),
-        'title':"Login",
-    })
-'''
-
-
-def logout(request):
-    auth.logout(request)
-    ###logout(request)
-    return HttpResponseRedirect("/accounts/login/")
 
 @login_required
 def index(request):

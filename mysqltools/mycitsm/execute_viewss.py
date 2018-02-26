@@ -3,7 +3,7 @@ from commonconfig import *
 import sqlparse
 from threading import Timer
 from django import forms
-
+import xlwt
 import time
 import signal
 
@@ -448,12 +448,14 @@ def do_execute(request, db_conn, db_name, limit_count):
         __result['exec_errors'] = []
         __result['sqlResultDict'] = []
         __result['field_desc'] = []
+        __result['excel_name'] = []
 
         result_item = []
         sqlErrorDict={}
         sqlResultDict=[]
         exec_errors = []
         field_desc=[]
+        excel_name = ''
 
         db_conn.autocommit(0)
         db_cur = db_conn.cursor()
@@ -502,16 +504,35 @@ def do_execute(request, db_conn, db_name, limit_count):
         # 去掉结尾的 ; 
         if dosql[-1] == ";":
             dosql = dosql[:-1]
-
+        #####################################################################################    
+        #判断limit大于10000的，导出excel放宽到50000
+        print limit_count,'limit_count'
+        if limit_count >100:
+            limit_end = int(limit_begin) + 30000
+        #######################################################################################
         if sql_item.get_type() == "SELECT":
             dosql = dosql + " limit " + str(limit_begin) + "," + str(limit_end)
-
         returncount = db_cur.execute(dosql)
-
-        for desc in db_cur.description:
-            field_desc.append(desc[0])
-
+        #########################################################################################
+        workbook = xlwt.Workbook()
+        sheet = workbook.add_sheet(db_name,cell_overwrite_ok=True)
+        db_fields = db_cur.description
+        for field in range(0,len(db_fields)):
+            sheet.write(0,field,db_fields[field][0])
+        ################################################################
         rows = db_cur.fetchall()
+        # 获取并写入数据段信息
+        time_now = time.strftime('%Y%m%d',time.localtime())
+        row_excel = 1
+        col_excel = 0
+        for row_excel in range(1,len(rows)+1):
+            for col_excel in range(0,len(db_fields)):
+                sheet.write(row_excel,col_excel,u'%s'%rows[row_excel-1][col_excel])
+        excel_name = 'export_excel/' + db_name + "_" + time_now + '.xlsx'
+        workbook.save(excel_name)
+        ######################################################################
+        for desc in db_fields:
+            field_desc.append(desc[0])
         for row in rows:
             line = []
             for i in range(0, len(row)):
@@ -538,6 +559,7 @@ def do_execute(request, db_conn, db_name, limit_count):
             __result['exec_errors'] = exec_errors
             __result['sqlResultDict'] = sqlResultDict
             __result['field_desc'] = field_desc
+            __result['excel_name'] = excel_name
 
             return __result
         elif retno == -1:# 没有权限 
@@ -550,7 +572,7 @@ def do_execute(request, db_conn, db_name, limit_count):
             __result['exec_errors'] = exec_errors
             __result['sqlResultDict'] = sqlResultDict
             __result['field_desc'] = field_desc
-
+            __result['excel_name'] = excel_name
             return __result            
         elif retno == 0: # 限制访问敏感字段
             idx = 0
@@ -579,11 +601,12 @@ def do_execute(request, db_conn, db_name, limit_count):
         sqlErrorDict['sql']=str(sql_item)
         sqlErrorDict['error']="execute failed: %s" %(e)
         exec_errors.append(sqlErrorDict)
-
+        
     
     __result['exec_errors'] = exec_errors
     __result['sqlResultDict'] = sqlResultDict
     __result['field_desc'] = field_desc
+    __result['excel_name'] = excel_name
 
     # log
     try:
@@ -598,7 +621,6 @@ def do_execute(request, db_conn, db_name, limit_count):
         upload_cur.close()
     except Exception as e:
         upload_cur.close()
-
     return __result
 
 #执行线程
@@ -618,6 +640,7 @@ class execThread(threading.Thread):
 
     def run(self):
         self.__result =  do_execute(self.request,self.db_conn, self.db_name, self.limit_count)
+
     def getResult(self):
         return self.__result
 
