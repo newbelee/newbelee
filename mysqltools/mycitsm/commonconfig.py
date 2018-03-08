@@ -10,7 +10,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login
 from mycitsm.dbconn import getConn
 from mycitsm.sendmsg import sendmail
-from dbconn import mysql_aes_encrypt_key
+#from dbconn import mysql_aes_encrypt_key
 #from mycitsm.mssqlconn import getmssqlconn
 from _mysql_exceptions import *
 import pymongo

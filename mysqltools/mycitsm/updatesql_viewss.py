@@ -749,6 +749,21 @@ def updatesql_manage(request):
                 }) 
             
     elif request.method == "POST":
+    	check_db = 'test_partition'
+    	order_tablelist = ["t_trade_order_coupon", "t_trade_order_delivery", "t_trade_order_header", "t_trade_order_item", "t_trade_order_item_promotion", "t_trade_order_payment", "t_trade_order_point"]
+    	if check_db == request.POST.get("dbname"):
+    		input_sql = request.POST.get('sql')
+    		for order_db_table in order_tablelist:
+	                if order_db_table in input_sql:
+	            	    error_meg = order_db_table + "在分库中，您操作的order_db属于非分库，分库请对order_db_shard操作。"
+	            	    errors.append(error_meg)
+	            	    if errors:
+			                return render_to_response('error.html',{
+			                    'errors':errors,
+			                    'user':request.user.username,
+			                    'title':"Error"
+			                }) 
+
         if request.POST.get('chksql'):
             dblist = getdblist(request)
             databaseName = ""
@@ -1172,9 +1187,7 @@ def chk_sql(request):
             sqlErrorDict['sql']=""
             sqlErrorDict['error']="请输入 db name"
             chk_errors.append(sqlErrorDict)
-        
         dbname = str(request.POST.get("dbname", ""))
-        print dbname
     elif action in ["edit", "exec"]:
         mid = request.GET.get("id", "")
         upload_cur = connection.cursor()
