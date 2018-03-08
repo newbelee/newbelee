@@ -60,56 +60,93 @@ def sqltoolsgrants(request):
     }
 
     return render(request, 'sqltoolsgrants.html',context)
-
+# DB 权限审核
 @login_required
 def sqltoolsgrants_edit(request):
     errors=[]
-
-    if request.method == 'GET':
-        username = request.GET.get("username", "")
-        dbname = request.GET.get("dbname", "")
-        issupper = request.GET.get("issupper", "")
-        status = request.GET.get("status", "未审批")
-        if issupper == "Y":
-            issupper = 1
+    maxSqlAmount = 10
+    envId = 4
+    param = []
+    cursor = connection.cursor()
+    if not request.user.is_superuser:
+        db_list = get_dbowner(request.user.username,None)
+        if db_list and db_list.get('result') == 0:
+            param1 = str(db_list.get('db_list')).replace('[','(').replace(']',')').replace(' u\'','\'').replace('(u','(')
+            sql = """
+                select id, Upload_DBName from  
+                    release_dbconfig
+                    where  Upload_DBName  in (
+                        select dbname 
+                        from sqltools_user_db where status = 0 and dbname in %s and username = %s)
+                """ % (param1,"'" + request.GET.get("username", "") + "'")
         else:
-            issupper = 0
+            errors.append('Sorry,only superusers are allowed to do this!')
+    elif request.user.is_superuser:
+        sql = """ 
+                select id, Upload_DBName from  
+                release_dbconfig
+                    where  Upload_DBName  in(    
+                    select dbname from sqltools_user_db where status = 0 and username = "%s")
+            """ %(request.GET.get("username", ""))
+    if errors:
+            return render_to_response('error.html',{
+                'errors':errors,
+                'user':request.user.username,
+                'title':"Error"
+            })
+   
+    username = request.GET.get("username", "")
+    status = request.GET.get("status", "未审批")
+    cursor.execute(sql)
+    dblist = dictFetchall(cursor)
 
-        if status == "未审批":
+    cursor.close()
+
+    if status == "未审批":
             status = 0
-        elif status == "正常":
-            status = 1
-        elif status == "未通过":
-            status = 2
-        else:
-            status = 0
+    elif status == "正常":
+        status = 1
+    elif status == "未通过":
+        status = 2
+    else:
+        status = 0
 
-        statuslist = []
-        statuslist.append({"status":0, "statusname":"未审批"})
-        statuslist.append({"status":1, "statusname":"正常"})
-        statuslist.append({"status":2, "statusname":"未通过"})
+    statuslist = []
+    statuslist.append({"status":0, "statusname":"未审批"})
+    statuslist.append({"status":1, "statusname":"正常"})
+    statuslist.append({"status":2, "statusname":"未通过"})
 
+    if request.method == "GET":        
         context = {
             'title':'用户查询权限管理',
             'username':username,
-            'dbname':dbname,
-            'isadd':0,
-            'issupper':issupper,
+            'dblist':dblist,
             'status':str(status),
             'statuslist':statuslist
         }
-        return render(request, 'sqltoolsgrants_edit.html',context)
+
+        return render(request, 'sqltoolsgrants_aedit.html',context)
+
     if request.method == 'POST':
-        dbname = request.POST.get("dbname", None)
-        db_modify_right = get_dbowner(request.user.username,dbname)
-        print(db_modify_right)
-        if db_modify_right:
-            right_result = db_modify_right.get('result')
-        else:
-            right_result = 1
-        if not request.user.is_superuser and right_result == 1:
-            errors.append('Sorry,only superusers are allowed to do this!')
-            
+        databaselist = request.POST.getlist("databaseId", "")
+        databaselist_where =  ','.join(['"'+ item + '"' for item in databaselist])
+        sql = """ select distinct dbname from release_dbconfig where id in (%s)""" %(databaselist_where)
+        cursor = connection.cursor()
+        cursor.execute(sql)
+        result_count = cursor.fetchall()
+        cursor.close()
+        dbnames = []
+        if result_count:
+                for dbname in result_count:
+                    db_modify_right = get_dbowner(request.user.username,dbname[0])
+                    if db_modify_right:
+                        dbnames.append(dbname[0])
+                        right_result = db_modify_right.get('result')
+                    else:
+                        right_result = 1
+                    if not request.user.is_superuser and right_result == 1:
+                        errors.append("对不起，你没有权限操作数据库:" + dbname[0])
+                        break
         if errors:
             return render_to_response('error.html',{
                 'errors':errors,
@@ -117,24 +154,29 @@ def sqltoolsgrants_edit(request):
                 'title':"Error"
             })
 
-        username = request.POST.get("username", "")
+        username = request.GET.get("username", "")
         issupper = request.POST.get("issupper", "")
         status = request.POST.get("status", "0")
+        if not status:
+            status = 0
+        if not issupper:
+            issupper = 0
 
+        dbnames_where =  ','.join(['"'+ item + '"' for item in dbnames])
         sql = """
                 update sqltools_user_db set issupper = %s, status = %s
-                where username = %s and dbname = %s
-            """
-        param=[issupper, status, username, dbname]
+                where username = "%s" and dbname in (%s)
+            """ %(issupper, status, username, dbnames_where)
+
         upload_cur = connection.cursor()
-        upload_cur.execute(sql, param)
+        upload_cur.execute(sql)
         upload_cur.connection.commit()
         upload_cur.close()
 
         context = {
             'title':'用户查询权限管理',
             'username':username,
-            'dbname':dbname,
+            'dbname':dbnames,
             'issupper':issupper
         }
         errors.append("操作成功")
@@ -144,6 +186,7 @@ def sqltoolsgrants_edit(request):
             'user':request.user.username,
             'title':"提示信息"
         })
+
 
 # 申请 db 查询权限
 @login_required

@@ -508,13 +508,13 @@ def do_execute(request, db_conn, db_name, limit_count):
         #判断limit大于10000的，导出excel放宽到50000
         print limit_count,'limit_count'
         if limit_count >100:
-            limit_end = int(limit_begin) + 30000
+            limit_end = int(limit_begin) + 50000
         #######################################################################################
         if sql_item.get_type() == "SELECT":
             dosql = dosql + " limit " + str(limit_begin) + "," + str(limit_end)
         returncount = db_cur.execute(dosql)
         #########################################################################################
-        workbook = xlwt.Workbook()
+        workbook = xlwt.Workbook(encoding = 'utf-8')
         sheet = workbook.add_sheet(db_name,cell_overwrite_ok=True)
         db_fields = db_cur.description
         for field in range(0,len(db_fields)):

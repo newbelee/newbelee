@@ -62,7 +62,7 @@
     <td style="width:5%">{{row.issupper}}</td>
     <td style="width:5%">{{row.status}}</td>
     <td style="width:20%">
-    <a href="/dbmgmt/sqltools/sqltoolsgrants?dbname={{row.dbname}}&&username={{row.username}}&&issupper={{row.issupper}}&&status={{row.status}}" {% if not is_superuser %} disabled="true" {% endif %}>修改</a>|
+    <a href="/dbmgmt/sqltools/sqltoolsgrants?username={{row.username}}" {% if not is_superuser %} disabled="true" {% endif %}>修改</a>|
     <a href="#" onclick="del({{row.id}})" {% if not is_superuser %} disabled="true" {% endif %}>删除</a>
     </td>
 </tr>
